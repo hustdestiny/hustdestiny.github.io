@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>iOS中的锁 | Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="首先客观的来说平时的工作中对锁的理解并不是很深刻，只是在之前面试的时候简单了解过，锁的用处主要是保证线程安全，死锁的场景。  初次接触的时候是在属性关键字中。nonatomic系统会在setter和getter的方法中加锁。也就是说，如果操作值类型那么OK没问题，但是如果操作一个MutableArray,那么大多数情况不是去set或者get这个arra,而是去add或者remove这个容易，所以这">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS中的锁">
+<meta property="og:url" content="http://yoursite.com/2018/04/26/iOS中的锁/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="首先客观的来说平时的工作中对锁的理解并不是很深刻，只是在之前面试的时候简单了解过，锁的用处主要是保证线程安全，死锁的场景。  初次接触的时候是在属性关键字中。nonatomic系统会在setter和getter的方法中加锁。也就是说，如果操作值类型那么OK没问题，但是如果操作一个MutableArray,那么大多数情况不是去set或者get这个arra,而是去add或者remove这个容易，所以这">
+<meta property="og:updated_time" content="2019-05-29T03:48:36.107Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS中的锁">
+<meta name="twitter:description" content="首先客观的来说平时的工作中对锁的理解并不是很深刻，只是在之前面试的时候简单了解过，锁的用处主要是保证线程安全，死锁的场景。  初次接触的时候是在属性关键字中。nonatomic系统会在setter和getter的方法中加锁。也就是说，如果操作值类型那么OK没问题，但是如果操作一个MutableArray,那么大多数情况不是去set或者get这个arra,而是去add或者remove这个容易，所以这">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-iOS中的锁" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/26/iOS中的锁/" class="article-date">
+  <time datetime="2018-04-26T12:11:20.000Z" itemprop="datePublished">2018-04-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      iOS中的锁
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>首先客观的来说平时的工作中对锁的理解并不是很深刻，只是在之前面试的时候简单了解过，锁的用处主要是保证线程安全，死锁的场景。</p>
+<ol>
+<li>初次接触的时候是在属性关键字中。nonatomic<br>系统会在setter和getter的方法中加锁。也就是说，如果操作值类型那么OK没问题，但是如果操作一个MutableArray,那么大多数情况不是去set或者get这个arra,而是去add或者remove这个容易，所以这个锁并没有左右。锁只是保证了这个指针变量本身，却不保证其指向的内容线程安全<br>。</li>
+<li><p>后来在项目中看见有同学使用 @synchronized (self)的写法</p>
+</li>
+<li><p>后来也看见过NSLock</p>
+</li>
+<li><p>直到今天看SDWebImage的时候看到这个宏定义，我觉得不总结一下，说不过去了哈。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LOCK(lock) dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> UNLOCK(lock) dispatch_semaphore_signal(lock);</span></span><br><span class="line"></span><br><span class="line">lock = dispatch_semaphore_create(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>atomic<br>dispatch_semaphore_t<br>pthread_mutex<br>pthread_mutex(recursive)<br>NSLock 是对pthread_mutex的封装，主要性能差别在用方法调用导致，其实并不大<br>NSCondition<br>NSRecursiveLock<br>NSConditionLock<br>@synchronized 这个后面只需要传递一个OC对象，并把这个对象当成锁来使用，并不是锁住这个对象的意思（反正我之前是理解成锁住整个self了，手动滑稽）</p>
+<p>什么是自旋锁？while忙等，注意优先级反转的问题（低优先级线程拿到锁，高优先级busy-wait消耗CPU时间，导致低优先级线程拿不到CPU时间，无法完成任务无法释放锁）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> lock = <span class="literal">false</span>; <span class="comment">// 一开始没有锁上，任何线程都可以申请锁  </span></span><br><span class="line"><span class="keyword">do</span> &#123;  </span><br><span class="line">    <span class="keyword">while</span>(lock); <span class="comment">// 如果 lock 为 true 就一直死循环，相当于申请锁</span></span><br><span class="line">    lock = <span class="literal">true</span>; <span class="comment">// 挂上锁，这样别的线程就无法获得锁</span></span><br><span class="line">        Critical section  <span class="comment">// 临界区</span></span><br><span class="line">    lock = <span class="literal">false</span>; <span class="comment">// 相当于释放锁，这样别的线程可以进入临界区</span></span><br><span class="line">        Reminder section <span class="comment">// 不需要锁保护的代码        </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>什么是互斥锁？pthread_mutex<br>PTHREAD_MUTEX_NORMAL<br>PTHREAD_MUTEX_ERRORCHECK==&gt;NSLock<br>PTHREAD_MUTEX_RECURSIVE==&gt;NSRecursiveLock</p>
+<p>什么是递归锁？递归锁在被同一线程重复获取时不会产生死锁 NSRecursiveLock @synchronized<br>什么是信号量？<br>原理是首先将信号量减1，判断是否大于0，大于0则无需等待直接，反之则使线程进入休眠状态，让出时间片。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sem_wait</span> <span class="params">(<span class="keyword">sem_t</span> *sem)</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">int</span> *futex = (<span class="keyword">int</span> *) sem;</span><br><span class="line">  <span class="keyword">if</span> (atomic_decrement_if_positive (futex) &gt; <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> err = lll_futex_wait (futex, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<h3 id="死锁场景"><a href="#死锁场景" class="headerlink" title="死锁场景"></a>死锁场景</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">NSLog(@<span class="string">"1"</span>); <span class="comment">// 任务1</span></span><br><span class="line">dispatch_sync(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">    NSLog(@<span class="string">"2"</span>); <span class="comment">// 任务2</span></span><br><span class="line">&#125;);</span><br><span class="line">NSLog(@<span class="string">"3"</span>); <span class="comment">// 任务3</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>首先在主线程中 任务1毫无疑问肯定执行。</li>
+<li>接着是一个同步函数，单线程中同步，将任务2添加到主队列的末尾。在主队列中 head-任务1-同步函数-任务3-任务2-tail。</li>
+<li>任务3需要等待同步函数返回才会执行。任务2也得等待任务3执行完。相互等待死锁。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/04/26/iOS中的锁/" data-id="cjxpp24vk000lcyz6uw7n4acm" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/04/28/YYModel源码学习/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          YYModel源码学习
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/04/17/SDWebImage源码学习/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">SDWebImage源码学习</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

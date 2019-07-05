@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>GPUImage学习笔记（3） | Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="本文记录一下探索GPUImage渲染的过程 1234567891011self.camera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPresetHigh cameraPosition:AVCaptureDevicePositionFront];self.camera.horizontallyMirr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GPUImage学习笔记（3）">
+<meta property="og:url" content="http://yoursite.com/2018/07/05/GPUImage学习笔记（3）/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="本文记录一下探索GPUImage渲染的过程 1234567891011self.camera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPresetHigh cameraPosition:AVCaptureDevicePositionFront];self.camera.horizontallyMirr">
+<meta property="og:updated_time" content="2018-07-27T13:38:50.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GPUImage学习笔记（3）">
+<meta name="twitter:description" content="本文记录一下探索GPUImage渲染的过程 1234567891011self.camera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPresetHigh cameraPosition:AVCaptureDevicePositionFront];self.camera.horizontallyMirr">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-GPUImage学习笔记（3）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/07/05/GPUImage学习笔记（3）/" class="article-date">
+  <time datetime="2018-07-05T03:06:00.000Z" itemprop="datePublished">2018-07-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      GPUImage学习笔记（3）
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本文记录一下探索GPUImage渲染的过程</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">self.camera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPresetHigh cameraPosition:AVCaptureDevicePositionFront];</span><br><span class="line">self.camera.horizontallyMirrorFrontFacingCamera = YES;</span><br><span class="line">self.camera.outputImageOrientation = UIDeviceOrientationPortrait;</span><br><span class="line">self.filter = [[GPUImageFilter alloc] init];</span><br><span class="line">self.imageView = [[GPUImageView alloc] initWithFrame:[UIScreen mainScreen].bounds];</span><br><span class="line">[self.view addSubview:self.imageView];</span><br><span class="line"></span><br><span class="line">[self.camera addTarget:self.filter];</span><br><span class="line">[self.filter addTarget:self.imageView];</span><br><span class="line"></span><br><span class="line">[self.camera startCameraCapture];</span><br></pre></td></tr></table></figure>
+<p>这是我在使用GPUImage的代码，很简单的完成了使用前置摄像头的任务，但是背后可不简单。</p>
+<p>这里我设置了三个状态<br>position: AVCaptureDevicePositionFront  //这个状态使用了前置摄像头<br>horizontallyMirrorFrontFacingCamera: YES //前置摄像头镜像<br>outputImageOrientation: UIDeviceOrientationPortrait //输出的图像是竖方向的</p>
+<p>videosettings:采样格式被设置为kCVPixelFormatType_420YpCbCr8BiPlanarFullRange===&gt;这种420f视频格式为NV12，Y分量一个plane,UV一起存储。Y1Y2…YN(U0V0)(U1V1)(Un/2Vn/2),UV前后顺序还得再确认下。</p>
+<p>接着就是创建一个shader程序就其转换成RGBA的格式<br>vertex shader是最简单的直通<br>fragment shader就比较复杂了<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">varying highp vec2 textureCoordinate;</span><br><span class="line"></span><br><span class="line">uniform sampler2D luminanceTexture;</span><br><span class="line">uniform sampler2D chrominanceTexture;</span><br><span class="line">uniform mediump mat3 colorConversionMatrix;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    mediump vec3 yuv;</span><br><span class="line">    lowp vec3 rgb;</span><br><span class="line">    </span><br><span class="line">    yuv.x = texture2D(luminanceTexture, textureCoordinate).r;</span><br><span class="line">    yuv.yz = texture2D(chrominanceTexture, textureCoordinate).ra - vec2(<span class="number">0.5</span>, <span class="number">0.5</span>);</span><br><span class="line">    rgb = colorConversionMatrix * yuv;</span><br><span class="line">    </span><br><span class="line">    gl_FragColor = vec4(rgb, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里除了传递了两个纹理之后，还传递了一个矩阵<br>GLfloat kColorConversion601FullRangeDefault[] = {<br>    1.0,    1.0,    1.0,<br>    0.0,    -0.343, 1.765,<br>    1.4,    -0.711, 0.0,<br>};<br>这个本质上是一个转换公式，将yuv420两个分量的纹理（y）(uv)转换成了rgba的纹理<br>1.0<em>y + 1.0</em>u + 1.0<em>v = r<br>0.0</em>y - 0.343<em>u + 1.765</em>v = g<br>1.4<em>y - 0.711</em>u + 0.0*v = b</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/07/05/GPUImage学习笔记（3）/" data-id="cjxpp24v10008cyz6lautyaih" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/07/27/GPUImage学习笔记（4）/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          GPUImage学习笔记（4）
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/06/26/GPUImage学习笔记（2）/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">GPUImage学习笔记（2）</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

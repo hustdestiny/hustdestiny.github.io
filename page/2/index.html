@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Destiny">
+<meta property="og:url" content="http://yoursite.com/page/2/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Destiny">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-GPUImage学习笔记（1）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/24/GPUImage学习笔记（1）/" class="article-date">
+  <time datetime="2018-05-24T02:53:58.000Z" itemprop="datePublished">2018-05-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/24/GPUImage学习笔记（1）/">GPUImage学习笔记（1）</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>断断续续看了也有一段时间了，画了无数个三角形了。。不得不记录一下。</p>
+<h2 id="opengl-vs-opengles"><a href="#opengl-vs-opengles" class="headerlink" title="opengl vs opengles"></a>opengl vs opengles</h2><p>opengl是什么？Open Graphics Library，一般可以认为它是一个操作图形图像的API。他的具体实现由显卡厂商实现，当你使用Apple系统的时候，OpenGL库是由Apple自身维护的。<br>opengles呢？opengl for Embedded Systems，它是opengl的一个子集，针对手机等嵌入式系统而设计的。去除了一些非必要的特性。</p>
+<h2 id="opengles的版本"><a href="#opengles的版本" class="headerlink" title="opengles的版本"></a>opengles的版本</h2><p>opengles1.x 是针对固定管线，opengles2.x 是针对可编程管线，opengles3.x相比2.x增加了新特性。目前使用比较广泛的还是2.x。</p>
+<h2 id="状态机"><a href="#状态机" class="headerlink" title="状态机"></a>状态机</h2><p>opengl本质是一个大的状态机。一系列的变量描绘了opengl此刻如何应该去工作。opengl的状态通常被称为上下文Context。</p>
+<h2 id="创建opengl的对象"><a href="#创建opengl的对象" class="headerlink" title="创建opengl的对象"></a>创建opengl的对象</h2><p>首先要说明的是，其实对于c来说并不存在对象，最多也只是结构。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建对象</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> objectId = <span class="number">0</span>;</span><br><span class="line">glGenObject(<span class="number">1</span>, &amp;objectId);</span><br><span class="line"><span class="comment">// 绑定对象至上下文</span></span><br><span class="line">glBindObject(GL_WINDOW_TARGET, objectId);</span><br><span class="line"><span class="comment">// 设置当前绑定到 GL_WINDOW_TARGET 的对象的一些选项</span></span><br><span class="line">glSetObjectOption(GL_WINDOW_TARGET, GL_OPTION_WINDOW_WIDTH, <span class="number">800</span>);</span><br><span class="line">glSetObjectOption(GL_WINDOW_TARGET, GL_OPTION_WINDOW_HEIGHT, <span class="number">600</span>);</span><br><span class="line"><span class="comment">// 将上下文对象设回默认</span></span><br><span class="line">glBindObject(GL_WINDOW_TARGET, <span class="number">0</span>);</span><br></pre></td></tr></table></figure></p>
+<ol>
+<li>创建一个对象，用objectId来保存生成对象的引索（opengl会依次生成index，比如1，2，3）</li>
+<li>这个对象和opengl的上下文绑定起来，使得opengl这个状态机某个具体的Target,引索到具体的对象。</li>
+<li>设置这个Target一些选项，实际上通过引索赋值到对象上了。</li>
+<li>解除上下文和这个对象的绑定，0这个index是opengl保留的，其大部分的作用就是用来解绑。</li>
+</ol>
+<h2 id="视口viewport"><a href="#视口viewport" class="headerlink" title="视口viewport"></a>视口viewport</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glViewport (GLint x, GLint y, GLsizei width, GLsizei height);</span><br></pre></td></tr></table></figure>
+<p>glViewport函数前两个参数控制窗口左下角的位置。第三个和第四个参数控制渲染窗口的宽度和高度（像素）。</p>
+<blockquote>
+<blockquote>
+<p>我看到相机应用中16：9， 1：1这样的设置的时候，我觉得可能是在改变这个值。</p>
+</blockquote>
+</blockquote>
+<h2 id="双缓冲"><a href="#双缓冲" class="headerlink" title="双缓冲"></a>双缓冲</h2><p>我们应用双缓冲渲染窗口应用程序。前缓冲保存着最终输出的图像，它会在屏幕上显示；而所有的的渲染指令都会在后缓冲上绘制。当所有的渲染指令执行完毕后，我们交换(Swap)前缓冲和后缓冲，这样图像就立即呈显出来。</p>
+<h2 id="清屏"><a href="#清屏" class="headerlink" title="清屏"></a>清屏</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">glClearColor(<span class="number">0.2f</span>, <span class="number">0.3f</span>, <span class="number">0.3f</span>, <span class="number">1.0f</span>);</span><br><span class="line">glClear(GL_COLOR_BUFFER_BIT);</span><br></pre></td></tr></table></figure>
+<p>我们可以通过调用glClear函数来清空屏幕的颜色缓冲，它接受一个缓冲位(Buffer Bit)来指定要清空的缓冲，可能的缓冲位有GL_COLOR_BUFFER_BIT，GL_DEPTH_BUFFER_BIT和GL_STENCIL_BUFFER_BIT。由于现在我们只关心颜色值，所以我们只清空颜色缓冲。</p>
+<h2 id="图形渲染管线"><a href="#图形渲染管线" class="headerlink" title="图形渲染管线"></a>图形渲染管线</h2><p>图形渲染管线可以被划分为几个阶段，每个阶段将会把前一个阶段的输出作为输入。所有这些阶段都是高度专门化的（它们都有一个特定的函数），并且很容易并行执行。正是由于它们具有并行执行的特性，当今大多数显卡都有成千上万的小处理核心，它们在GPU上为每一个（渲染管线）阶段运行各自的小程序，从而在图形渲染管线中快速处理你的数据。这些小程序叫做着色器(Shader)。</p>
+<p>顶点数据 ==&gt; 顶点着色器 ==&gt; 图元装配 ==&gt; 几何着色器 ==&gt; 光栅化 ==&gt; 片段着色器 ==&gt; 测试和混合</p>
+<p>图形渲染管线非常复杂，它包含很多可配置的部分。然而，对于大多数场合，我们只需要配置顶点和片段着色器就行了。几何着色器是可选的，通常使用它默认的着色器就行了。</p>
+<h2 id="顶点缓冲对象VBO"><a href="#顶点缓冲对象VBO" class="headerlink" title="顶点缓冲对象VBO"></a>顶点缓冲对象VBO</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 生成一个buffer对象,相当于申请一个显存（此时还未分配空间）</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> VBO;</span><br><span class="line">glGenBuffers(<span class="number">1</span>, &amp;VBO);</span><br><span class="line"></span><br><span class="line"><span class="comment">//顶点缓冲对象的缓冲类型是GL_ARRAY_BUFFER</span></span><br><span class="line">glBindBuffer(GL_ARRAY_BUFFER, VBO);</span><br><span class="line"></span><br><span class="line"><span class="comment">//从cpu向gpu传递数据</span></span><br><span class="line">glBufferData(GL_ARRAY_BUFFER, <span class="keyword">sizeof</span>(vertices), vertices, GL_STATIC_DRAW);</span><br></pre></td></tr></table></figure>
+<h2 id="着色器程序"><a href="#着色器程序" class="headerlink" title="着色器程序"></a>着色器程序</h2><p>program<br>vertex shader<br>fragment shader</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建shader程序</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> shaderProgram;</span><br><span class="line">shaderProgram = glCreateProgram();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建顶点shader，注入代码，编译</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> vertexShader;</span><br><span class="line">vertexShader = glCreateShader(GL_VERTEX_SHADER);</span><br><span class="line">glShaderSource(vertexShader, <span class="number">1</span>, &amp;vertexShaderSource, <span class="literal">NULL</span>);</span><br><span class="line">glCompileShader(vertexShader);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建偏远shader，注入代码，编译</span></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">int</span> fragmentShader;</span><br><span class="line">fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);</span><br><span class="line">glShaderSource(fragmentShader, <span class="number">1</span>, &amp;fragmentShaderSource, <span class="literal">NULL</span>);</span><br><span class="line">glCompileShader(fragmentShader);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将两个shader附着到程序上</span></span><br><span class="line">glAttachShader(shaderProgram, vertexShader);</span><br><span class="line">glAttachShader(shaderProgram, fragmentShader);</span><br><span class="line"></span><br><span class="line"><span class="comment">// link程序</span></span><br><span class="line">glLinkProgram(shaderProgram);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用程序</span></span><br><span class="line">glUseProgram(shaderProgram);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 链接完其实就可以删除shader了</span></span><br><span class="line">glDeleteShader(vertexShader);</span><br><span class="line">glDeleteShader(fragmentShader);</span><br></pre></td></tr></table></figure>
+<h2 id="链接顶点属性，告诉opengl如何解释在VBO中的数据"><a href="#链接顶点属性，告诉opengl如何解释在VBO中的数据" class="headerlink" title="链接顶点属性，告诉opengl如何解释在VBO中的数据"></a>链接顶点属性，告诉opengl如何解释在VBO中的数据</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">glVertexAttribPointer(<span class="number">0</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">3</span> * <span class="keyword">sizeof</span>(<span class="keyword">float</span>), (<span class="keyword">void</span>*)<span class="number">0</span>);</span><br><span class="line">glEnableVertexAttribArray(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p>glVertexAttribPointer<br>第一个参数，对应于vertex shader中属性的位置，也就是说顶点数据对应shader中哪个变量能访问到<br>第二个参数，顶点属性的大小<br>第三个参数，顶点属性的数据类型<br>第四个参数，是否归一化<br>第五个参数，顶点数据的步长，（因为顶点数据可以包含，坐标啊，颜色啊，等任何数据，每一整块是等长的）<br>第六个参数，在一整块数据中的偏移，（比如前三个是3d坐标</p>
+<p>还有一个问题，怎么关联起来的呢？<br>每个顶点属性从一个VBO管理的内存中获得它的数据，而具体是从哪个VBO（程序中可以有多个VBO）获取则是通过在调用glVetexAttribPointer时绑定到GL_ARRAY_BUFFER的VBO决定的。由于在调用glVetexAttribPointer之前绑定的是先前定义的VBO对象，顶点属性0现在会链接到它的顶点数据。</p>
+<h2 id="顶点数组对象VAO"><a href="#顶点数组对象VAO" class="headerlink" title="顶点数组对象VAO"></a>顶点数组对象VAO</h2><p>用来管理VBO的</p>
+<h2 id="纹理"><a href="#纹理" class="headerlink" title="纹理"></a>纹理</h2><p>纹理是一个2D图片（甚至也有1D和3D的纹理）</p>
+<p>为了能够把纹理映射(Map)到三角形上，我们需要指定三角形的每个顶点各自对应纹理的哪个部分。这样每个顶点就会关联着一个纹理坐标(Texture Coordinate)，用来标明该从纹理图像的哪个部分采样</p>
+<ol>
+<li><p>纹理环绕方式（GL_REPEAT，GL_MIRRORED_REPEAT，GL_CLAMP_TO_EDGE，GL_CLAMP_TO_BORDER）<br>纹理坐标的范围通常是从(0, 0)到(1, 1)，那如果我们把纹理坐标设置在范围之外会发生什么？<br>glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);<br>glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);</p>
+</li>
+<li><p>纹理过滤（GL_LINEAR，GL_NEAREST）<br>glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);<br>glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);</p>
+</li>
+<li><p>加载纹理<br>unsigned int texture;<br>glGenTextures(1, &amp;texture);<br>glBindTexture(GL_TEXTURE_2D, texture);<br>glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);<br>glGenerateMipmap(GL_TEXTURE_2D);</p>
+</li>
+<li><p>纹理单元（0-31）<br>一个纹理的默认纹理单元是0，它是默认的激活纹理单元<br>glActiveTexture(GL_TEXTURE0);<br>glUniform1i(glGetUniformLocation(ourShader.ID, “texture1”), 0);</p>
+</li>
+</ol>
+<h2 id="变换-amp-坐标-amp-摄像机"><a href="#变换-amp-坐标-amp-摄像机" class="headerlink" title="变换&amp;坐标&amp;摄像机"></a>变换&amp;坐标&amp;摄像机</h2><p>待续…<br>本质上可以看成一系列矩阵变换</p>
+<h2 id="帧缓存对象"><a href="#帧缓存对象" class="headerlink" title="帧缓存对象"></a>帧缓存对象</h2><p>渲染缓冲对象能为你的帧缓冲对象提供一些优化，但知道什么时候使用渲染缓冲对象，什么时候使用纹理是很重要的。通常的规则是，如果你不需要从一个缓冲中采样数据，那么对这个缓冲使用渲染缓冲对象会是明智的选择。如果你需要从缓冲中采样颜色或深度值等数据，那么你应该选择纹理附件。性能方面它不会产生非常大的影响的。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/24/GPUImage学习笔记（1）/" data-id="cjxpp24uy0006cyz61hql4lrn" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-dlib-iOS人脸特征识别环境搭建" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/17/dlib-iOS人脸特征识别环境搭建/" class="article-date">
+  <time datetime="2018-05-17T03:30:14.000Z" itemprop="datePublished">2018-05-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/17/dlib-iOS人脸特征识别环境搭建/">dlib+iOS人脸特征识别环境搭建</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>一个警告：这些来自相机的样本旋转了 90 度，这是由于相机传感器的朝向所导致的。</p>
+<p>最近在研究人脸识别，有点懵逼哈。。</p>
+<p>我大概将整个流程分成两个部分</p>
+<ol>
+<li>人脸识别，这个opencv可以做但是CPU的消耗170%真的是不敢恭维，系统的AVCaptureMetadataOutput中AVMetadataObjectTypeFace也是可以做的，而且效果更好。</li>
+<li>特征检测，当得到人脸的矩形以后，这一步的工作就是识别各个部位的位置这个由dlib完成</li>
+</ol>
+<p>废话不多说进入主题dlib</p>
+<ol>
+<li><p>这是库地址<a href="https://github.com/davisking/dlib" target="_blank" rel="noopener">dlib</a></p>
+</li>
+<li><p>下载这个库</p>
+</li>
+</ol>
+<figure class="highlight zsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/davisking/dlib.git</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>然后需要安装cmake，已经安装的忽略</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install cmake</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>然后生成XCode的项目<br>mkdir build &amp;&amp; cd build<br>cmake -G Xcode ..<br>cmake –build . –config Release 或者 Debug</p>
+</li>
+<li><p>新建一个空的iOS工程<br>新建一个lib文件夹，将libdlib.a拖进去<br>build settings中 search path library search paths 和 header search paths添加 $(PROJECT_DIR)/lib<br>macros中添加 DLIB_NO_GUI_SUPPORT, DLIB_JPEG_SUPPORT, NDEBUG, DLIB_USE_BLAS, DLIB_USE_LAPACK</p>
+</li>
+<li><p>也是折腾了一会的因为我们要使用DlibWrapper这个文件<br>Build Phases中 Link Binary With Libraries 添加 CoreMedia.framework Accelerate.framework这两个库</p>
+</li>
+</ol>
+<p>顺利的话应该是可以了</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/17/dlib-iOS人脸特征识别环境搭建/" data-id="cjxpp24vh000jcyz6e7mhd9d0" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-opencv学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/14/opencv学习笔记/" class="article-date">
+  <time datetime="2018-05-14T02:07:13.000Z" itemprop="datePublished">2018-05-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/14/opencv学习笔记/">opencv学习笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><p>首先到opencv的GitHub主页 <a href="https://github.com/opencv/opencv" target="_blank" rel="noopener">https://github.com/opencv/opencv</a></p>
+</li>
+<li><p>到你想存放的目录下执行</p>
+<figure class="highlight zsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/opencv/opencv.git</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当你的代码下载完成之后cd到opencv目录下，创建一个新的目录可以叫做build或者release， 使用cmake将代码安装到/usr/local目录下</p>
+<figure class="highlight zsh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">brew install cmake</span><br><span class="line"><span class="built_in">cd</span> opencv</span><br><span class="line">mkdir build</span><br><span class="line"><span class="built_in">cd</span> build</span><br><span class="line">cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/<span class="built_in">local</span> ..</span><br><span class="line">make</span><br><span class="line">sudo make install</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>新建一个工程，首先将一个使用opencv的.m文件后缀改成.mm，</p>
+</li>
+</ol>
+<p>更改Build Settings中<br>Header Search Paths —&gt; /usr/local/include<br>Library Search Paths —&gt; /usr/local/lib</p>
+<p>更改Build Phases中<br>Link Binary With Libraries —&gt;<br>Click “+”<br>Click “Add Other”,Cmd + shift + G ===&gt; “/usr/local/lib”,勾选opencv相关的库文件</p>
+<ol>
+<li>在mm文件中，import文件，记住顺序也不能颠倒~~</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#import &lt;opencv2/opencv.hpp&gt;</span><br><span class="line">#import &lt;Foundation/Foundation.h&gt;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>build不出意外应该是成功了</li>
+</ol>
+<h2 id="图像处理"><a href="#图像处理" class="headerlink" title="图像处理"></a>图像处理</h2><h3 id="平滑处理"><a href="#平滑处理" class="headerlink" title="平滑处理"></a>平滑处理</h3><ol>
+<li>简单模糊 param1*param2邻域求和求平均</li>
+<li>简单无缩放变换的模糊 param1*param2领域求和，不求平均</li>
+<li>中值滤波</li>
+<li>高斯滤波 高斯分布的核</li>
+<li>双边滤波 邻域的加权平均值，一部分也高斯平滑相同，另一部分其他像素点和中心像素点的亮度差值加权</li>
+</ol>
+<h3 id="图像形态学"><a href="#图像形态学" class="headerlink" title="图像形态学"></a>图像形态学</h3><p>膨胀 图像A与核卷积，计算核B覆盖区域的像素最大值<br>腐蚀 图像A与核卷积，计算核B覆盖区域的像素最小值</p>
+<p>开运算 先腐蚀再膨胀<br>闭运算 先膨胀在腐蚀<br>梯度 膨胀-腐蚀<br>礼帽 src - 开运算<br>黑帽 闭运算 - src</p>
+<h3 id="漫水填充算法"><a href="#漫水填充算法" class="headerlink" title="漫水填充算法"></a>漫水填充算法</h3><h3 id="尺寸调整"><a href="#尺寸调整" class="headerlink" title="尺寸调整"></a>尺寸调整</h3><h3 id="图像金字塔"><a href="#图像金字塔" class="headerlink" title="图像金字塔"></a>图像金字塔</h3><h3 id="阈值化"><a href="#阈值化" class="headerlink" title="阈值化"></a>阈值化</h3><h3 id="自适应阈值"><a href="#自适应阈值" class="headerlink" title="自适应阈值"></a>自适应阈值</h3>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/14/opencv学习笔记/" data-id="cjxpp24vq000qcyz647nfzfvs" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-ARKit学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/09/ARKit学习笔记/" class="article-date">
+  <time datetime="2018-05-09T07:04:42.000Z" itemprop="datePublished">2018-05-09</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/09/ARKit学习笔记/">ARKit学习笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>组里让调研一下AR相关的知识，em…我一开始是拒绝的，我现在也是拒绝的。摸不清门道，感觉回到了我之前刚学习iOS的时候，有种有力使不出的感觉，挫败感很强，很浮躁。<br>但是这是任务，并不是兴趣，所以硬着头皮也得啃一啃。</p>
+<p>ARKit是建立在SceneKit的基础之上的</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/09/ARKit学习笔记/" data-id="cjxpp24ui0000cyz65pa0w4ob" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-JLRoutes源码学习" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/02/JLRoutes源码学习/" class="article-date">
+  <time datetime="2018-05-02T09:21:46.000Z" itemprop="datePublished">2018-05-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/02/JLRoutes源码学习/">JLRoutes源码学习</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>之前也看过一些模块化的文章，围观过一些切磋。自己并没有实际的使用过，主流的框架是MGJRouter, CTMediator, JLRoutes。简单来说，我还是喜欢star比较多的项目（star党）。<br>这里来学习一下项目中使用的JLRoutes框架，不知道为什么，总觉得在使用的时候总感觉怪怪的，今天就来读一下源码看看是否能解决一下心中疑惑。</p>
+<p>首先这个库的目的是为了解决外部跳转到App内部的场景，打一个比方，在我们使用微信的分享的时候，我们直接跳转到了微信对应的页面，而不是仅仅进入到首页，然后需要我们手动点击跳转目标页面。那么怎么做到的呢？只有一个途径就是openurl的方式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary&lt;NSString *, id&gt; *)options</span><br></pre></td></tr></table></figure>
+<p>首先我们需要在我们的Info.plist中添加URL schemes。这样在iPhone的其他应用就可以通过这个schemes(注意这是一个数组，意思就是同一个app可以有多个scheme)识别需要打开的应用，然后跳转过去。比如在safari中直接输入，这个scheme下的url即可。那么问题来了，调用了系统的这个方法之后，怎么才能根据url跳转到对应的页面呢？就是下面的这一句代码了，这么厉害，一句搞定？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[JLRoutes routeURL:url];</span><br></pre></td></tr></table></figure>
+<p>非也非也。具体执行的时候还是需要先注册，再跳转。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (void)addRoute:(NSString *)routePattern handler:(BOOL (^)(NSDictionary&lt;NSString *, id&gt; *parameters))handlerBlock</span><br></pre></td></tr></table></figure>
+<p>这是注册的时候的一个入口函数，框架的demo,使用的是在didFinishLanuch中注册。个人觉得，放在module的load方法中注册应该会更好一些，更分散，而不是集中的一坨。这个方法最终会调用到下面这个方法。默认传了一个O的优先级而已。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (void)addRoute:(NSString *)routePattern priority:(NSUInteger)priority handler:(BOOL (^)(NSDictionary&lt;NSString *, id&gt; *parameters))handlerBlock</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建一个JLRRouteDefinition的对象，这其中包含了patter, priority,和handlerBlock</li>
+<li>register这个route, 会根据priority往mutableRoutes中添加route, 给route添加scheme</li>
+</ol>
+<p>前面注册就到此为止了<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)_routeURL:(NSURL *)URL withParameters:(NSDictionary *)parameters executeRouteBlock:(BOOL)executeRouteBlock;</span><br></pre></td></tr></table></figure></p>
+<ol>
+<li>参数检查</li>
+<li>根据url, options, parameters, 生成request对象</li>
+<li>遍历mutableRoutes, 检查route和request是否匹配，（各种循环，看晕了👀）</li>
+<li>匹配之后执行handlerBlock, 根据return值，决定是否需要继续遍历</li>
+</ol>
+<p>总结一下，本质上就是register 一个route 到 mutableRoutes的数组中，然后通过短链调用的时候生成request-&gt;response,然后遍历匹配mutableRoutes。代码清晰易读。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/02/JLRoutes源码学习/" data-id="cjxpp24v30009cyz6emx63zkr" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-YYModel源码学习" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/28/YYModel源码学习/" class="article-date">
+  <time datetime="2018-04-28T02:15:28.000Z" itemprop="datePublished">2018-04-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/28/YYModel源码学习/">YYModel源码学习</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>项目里面居然还是手动解析服务端返回的json，简直不能忍受那些重复的代码。<br>现在市面OC上比较主流应该是MJExtension和YYModel了吧。（当然Swift应该是SwiftyJson，当前的工作栈主要是OC，就以YYModel入手了）</p>
+<p>这是一个NSObject的Category,这也是YYModel的核心，因为它是通过runtime实现反射来实现的。<br>先看这个入口函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)yy_modelWithJSON:(id)json;</span><br><span class="line">+ (NSDictionary *)_yy_dictionaryWithJSON:(id)json</span><br><span class="line">+ (instancetype)yy_modelWithDictionary:(NSDictionary *)dictionary;</span><br></pre></td></tr></table></figure>
+<p>注意一下，这里传入的是一个id类型，参数名为json的对象。好吧，我就不卖关子了，json是有两种形态的，一个是json对象形态NSDictionary，另一种就是字符串形态NSString，除此以外这里也处理json字符串UTF8编码后的NSData。</p>
+<p>所以第二个方法的工作就是将上述的所有的形态，转换成一个NSDictionary。也就是下面这个api的作用了。</p>
+<p>然后就是根据NSDictionary生成Model了。</p>
+<ol>
+<li>根据惯例，首先是参数检查。</li>
+<li>获得当前的Class</li>
+<li>根据Class生成一个_YYModelMeta的对象，从名字看出他是这个类的元信息。</li>
+<li>检查是否有自定义的Class去从字典转换</li>
+<li>创建一个对象</li>
+<li>给这个新的对象赋值，并返回</li>
+</ol>
+<p>首先来看这个_YYModelMeta对象吧<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)metaWithClass:(Class)cls;</span><br><span class="line">- (instancetype)initWithClass:(Class)cls;</span><br></pre></td></tr></table></figure></p>
+<p>这里实用类方法，主要目的是增加一个缓存，提高效率。</p>
+<ol>
+<li>根据惯例，首先是参数检查。</li>
+<li>使用单例，生成cache, lock。这个锁是基于信号量的。</li>
+<li>加锁，从cache中寻找meta，解锁 （这一步提高性能）</li>
+<li>如果没有找到meta,或者meta需要更新</li>
+<li><p>生成meta,cache这个生成的meta，然后return</p>
+<p> 生成meta的方法如下</p>
+<ol>
+<li><p>首先获得YYClassInfo, 没有则return nil<br> 这里还涉及一个YYClassInfo的创建,这里有三个容器，ivarInfos, methodInfos, propertyInfos，前两个感觉没啥用啊</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)classInfoWithClass:(Class)cls;</span><br><span class="line">- (instancetype)initWithClass:(Class)cls;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建classCache, metaCache, 锁</li>
+<li>使用单例初始化</li>
+<li>加锁，读cache</li>
+<li>创建info, 设置cache<ol>
+<li>参数检查</li>
+<li>设置cls, superCls, 设置isMeta，不是meta获得metaCls, 获得类名</li>
+<li>update，methodInfos, propertyInfos, ivarInfos</li>
+<li>获得父类的ClassInfo</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>获取黑名单</li>
+<li>获取白名单</li>
+<li>获取容器中的类型，key比如得是属性名，value可以由Class或者是这个Class名字的字符串转成Class</li>
+<li><p>建立一个属性的allPropertyMetas字典，遍历继承链，遍历propertyInfos，过滤 没有属性名，有黑名单并在名单中，有白名单不在名单中，生成属性meta, 过滤 属性meta不存在或者没有名字，meta没有getter或者setter，已存在（所以子类覆盖父类）。<br> 根据propertyInfo,生成_YYModelPropertyMeta</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)metaWithClassInfo:(YYClassInfo *)classInfo propertyInfo:(YYClassPropertyInfo *)propertyInfo generic:(Class)generic</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>将结果存在_allPropertyMetas中可以为属性名，value 为propertyMeta</p>
+</li>
+<li>建立三个字典mapper，keyPathPropertyMetas，multiKeysPropertyMetas，主要处理keyPath的情况</li>
+<li>判断是否有自定义Mapper,如果存在自定义customMapper,遍历<ol>
+<li>从属性allPropertyMetas中找到PropertyMeta</li>
+<li>将其从中移除</li>
+<li>如果是字符串，判空，设置key, 判断是否是keypath,设置keyPath，设置_next, 设置mapper,key为keypath,value为propertyMeta</li>
+<li>如果是数组，遍历，参数检查，判断到底是key还是keyPath, 设置mappedTokey属性，设置_next, 设置mapper</li>
+</ol>
+</li>
+<li>设置mapper, keyPathPropertyMetas, multiKeysPropertyMetas</li>
+<li>设置一系列属性</li>
+</ol>
+</li>
+</ol>
+<p>上部分主要是对这个类进行各种解析，接下去的我们就是创建一个对象，然后给这个对象赋值。<br>这里首先创建一个context，这个其中包含了modelMeta, model(创建出来的对象)，dictionary（一般是服务端返回）</p>
+<p>这里根据_keyMappedCount和dic的数目对比，进行不同的处理，这里的遍历使用apply的方式。感觉是为了速度。</p>
+<p>分不同的情况分别调用了，下面的两个方法  这里都是使用inline函数<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">ModelSetWithDictionaryFunction</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *_key, <span class="keyword">const</span> <span class="keyword">void</span> *_value, <span class="keyword">void</span> *_context)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">ModelSetWithPropertyMetaArrayFunction</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *_propertyMeta, <span class="keyword">void</span> *_context)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>最后的最后都会走到这个方法上来，这个方法针对不同的value的可能性通过setter方法给其赋值。<br>如果是容器，会使用_genericCls的class,递归调用<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">ModelSetValueForProperty</span><span class="params">(__unsafe_unretained id model,</span></span></span><br><span class="line"><span class="function"><span class="params">                                     __unsafe_unretained id value,</span></span></span><br><span class="line"><span class="function"><span class="params">                                     __unsafe_unretained _YYModelPropertyMeta *meta)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>最后一步就是自定义处理<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)modelCustomTransformFromDictionary:(NSDictionary *)dic;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/04/28/YYModel源码学习/" data-id="cjxpp24vg000icyz6dnsz4udb" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-iOS中的锁" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/26/iOS中的锁/" class="article-date">
+  <time datetime="2018-04-26T12:11:20.000Z" itemprop="datePublished">2018-04-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/26/iOS中的锁/">iOS中的锁</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>首先客观的来说平时的工作中对锁的理解并不是很深刻，只是在之前面试的时候简单了解过，锁的用处主要是保证线程安全，死锁的场景。</p>
+<ol>
+<li>初次接触的时候是在属性关键字中。nonatomic<br>系统会在setter和getter的方法中加锁。也就是说，如果操作值类型那么OK没问题，但是如果操作一个MutableArray,那么大多数情况不是去set或者get这个arra,而是去add或者remove这个容易，所以这个锁并没有左右。锁只是保证了这个指针变量本身，却不保证其指向的内容线程安全<br>。</li>
+<li><p>后来在项目中看见有同学使用 @synchronized (self)的写法</p>
+</li>
+<li><p>后来也看见过NSLock</p>
+</li>
+<li><p>直到今天看SDWebImage的时候看到这个宏定义，我觉得不总结一下，说不过去了哈。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LOCK(lock) dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> UNLOCK(lock) dispatch_semaphore_signal(lock);</span></span><br><span class="line"></span><br><span class="line">lock = dispatch_semaphore_create(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>atomic<br>dispatch_semaphore_t<br>pthread_mutex<br>pthread_mutex(recursive)<br>NSLock 是对pthread_mutex的封装，主要性能差别在用方法调用导致，其实并不大<br>NSCondition<br>NSRecursiveLock<br>NSConditionLock<br>@synchronized 这个后面只需要传递一个OC对象，并把这个对象当成锁来使用，并不是锁住这个对象的意思（反正我之前是理解成锁住整个self了，手动滑稽）</p>
+<p>什么是自旋锁？while忙等，注意优先级反转的问题（低优先级线程拿到锁，高优先级busy-wait消耗CPU时间，导致低优先级线程拿不到CPU时间，无法完成任务无法释放锁）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> lock = <span class="literal">false</span>; <span class="comment">// 一开始没有锁上，任何线程都可以申请锁  </span></span><br><span class="line"><span class="keyword">do</span> &#123;  </span><br><span class="line">    <span class="keyword">while</span>(lock); <span class="comment">// 如果 lock 为 true 就一直死循环，相当于申请锁</span></span><br><span class="line">    lock = <span class="literal">true</span>; <span class="comment">// 挂上锁，这样别的线程就无法获得锁</span></span><br><span class="line">        Critical section  <span class="comment">// 临界区</span></span><br><span class="line">    lock = <span class="literal">false</span>; <span class="comment">// 相当于释放锁，这样别的线程可以进入临界区</span></span><br><span class="line">        Reminder section <span class="comment">// 不需要锁保护的代码        </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>什么是互斥锁？pthread_mutex<br>PTHREAD_MUTEX_NORMAL<br>PTHREAD_MUTEX_ERRORCHECK==&gt;NSLock<br>PTHREAD_MUTEX_RECURSIVE==&gt;NSRecursiveLock</p>
+<p>什么是递归锁？递归锁在被同一线程重复获取时不会产生死锁 NSRecursiveLock @synchronized<br>什么是信号量？<br>原理是首先将信号量减1，判断是否大于0，大于0则无需等待直接，反之则使线程进入休眠状态，让出时间片。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sem_wait</span> <span class="params">(<span class="keyword">sem_t</span> *sem)</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">int</span> *futex = (<span class="keyword">int</span> *) sem;</span><br><span class="line">  <span class="keyword">if</span> (atomic_decrement_if_positive (futex) &gt; <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> err = lll_futex_wait (futex, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<h3 id="死锁场景"><a href="#死锁场景" class="headerlink" title="死锁场景"></a>死锁场景</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">NSLog(@<span class="string">"1"</span>); <span class="comment">// 任务1</span></span><br><span class="line">dispatch_sync(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">    NSLog(@<span class="string">"2"</span>); <span class="comment">// 任务2</span></span><br><span class="line">&#125;);</span><br><span class="line">NSLog(@<span class="string">"3"</span>); <span class="comment">// 任务3</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>首先在主线程中 任务1毫无疑问肯定执行。</li>
+<li>接着是一个同步函数，单线程中同步，将任务2添加到主队列的末尾。在主队列中 head-任务1-同步函数-任务3-任务2-tail。</li>
+<li>任务3需要等待同步函数返回才会执行。任务2也得等待任务3执行完。相互等待死锁。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/04/26/iOS中的锁/" data-id="cjxpp24vk000lcyz6uw7n4acm" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-SDWebImage源码学习" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/17/SDWebImage源码学习/" class="article-date">
+  <time datetime="2018-04-17T09:34:22.000Z" itemprop="datePublished">2018-04-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/17/SDWebImage源码学习/">SDWebImage源码学习</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在刚刚接触iOS的时候就听说SDWebImage的大名，在第一家面试的时候也被问到过这个库的问题，后来或多或少的读过其源码。如今作为一个Developer已经三年了，来好好总结一下这个OCStar第二名。</p>
+<p>首先在心中问一个问题，为什么要使用这个库？也许是因为他名气很大Star很多，也许是因为原来项目中就使用了这个库，也许是因为面试被虐知道了这个库。</p>
+<p>他解决了什么问题？</p>
+<ol>
+<li>下载网络图片</li>
+<li>Cell中复用问题</li>
+<li>内存缓存和硬盘缓存</li>
+<li>强制解码，增加渲染速度</li>
+</ol>
+<p>正常来说我们都是从UIImageView+WebCache.h这个文件开始的</p>
+<p>这个Api是我个人使用最多的了。本质上都是调用下面这个api<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (void)sd_setImageWithURL:(nullable NSURL *)url placeholderImage:(nullable UIImage *)placeholder</span><br></pre></td></tr></table></figure></p>
+<p>一层一层点进去，内部调用了UIView的一个Category的方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">- (void)sd_internalSetImageWithURL:(nullable NSURL *)url</span><br><span class="line">                  placeholderImage:(nullable UIImage *)placeholder</span><br><span class="line">                           options:(SDWebImageOptions)options</span><br><span class="line">                      operationKey:(nullable NSString *)operationKey</span><br><span class="line">                     setImageBlock:(nullable SDSetImageBlock)setImageBlock</span><br><span class="line">                          progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock</span><br><span class="line">                         completed:(nullable SDExternalCompletionBlock)completedBlock</span><br><span class="line">                           context:(nullable NSDictionary&lt;NSString *, id&gt; *)context;</span><br></pre></td></tr></table></figure>
+<p>先别晕，当一个框架暴露的接口越是简单，灵活，他的内部一定是复杂的。因为他帮你做了那些你该做的工作。这个方法是很长的，虽然这不符合我的50lines的规矩，但是规矩是人定的。</p>
+<ol>
+<li>第一步先取这个operationKey，正常我们使用的时候并不会设置这个，所以它默认应该是一个@”UIImageView”的字符串</li>
+<li>cancel掉当前这个UIImageView上正在下载的图片，大概就是这个UIView lazy的方式关联一个NSMapTable(相当于是字典)，字典的key其实这就是类名，value为下载的operation，这个operation就是可以cancel的, cancel了之后再去下载下一张图片，也就不会出现一些复用导致的bug。（最经典的先下载的图片，因为网络后下载完成，覆盖上去导致错乱）</li>
+<li>把图片的地址也关联到这个UIView上去</li>
+<li>判断options中是否有延迟placeholder的设置项，没有的话就去设置placeholder，当然这其中有一个group 和 主线程的内容，先放一放</li>
+<li>判断url url为空则移除indicator, 执行completedBlock抛出错误</li>
+<li>url不为空，根据需要显示indicator。</li>
+<li>重置图片下载进度</li>
+<li>尝试从上下文中获取manager, 或者取单例的sharedManager</li>
+<li>设置一个progress的block</li>
+<li>manager根据url options等参数去下载图片，并返回一个operaion对象,将这个对象set到关联的NSMapTable中去。</li>
+<li>这里的weak strong dance。首先检查sself，多线程的情况可能释放，移除indicator,设置progress的异常情况</li>
+<li>根据options,不禁止自动设置图片，延迟设置placeholder，setNeedsLayout</li>
+<li>设置image, 和 imageData</li>
+<li>设置imageView的image,执行completedBlock</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (id &lt;SDWebImageOperation&gt;)loadImageWithURL:(nullable NSURL *)url</span><br><span class="line">                                     options:(SDWebImageOptions)options</span><br><span class="line">                                    progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock</span><br><span class="line">                                   completed:(nullable SDInternalCompletionBlock)completedBlock</span><br></pre></td></tr></table></figure>
+<ol>
+<li>检查是否completedBlock</li>
+<li>检查URL的参数类型。NSString，NSURL</li>
+<li>创建一个operation，设置他的manager为单例</li>
+<li>看url 是否为失败的url</li>
+<li>绝对url不存在，或者（是失败的url且不重试）, 调用完成，并返回operation</li>
+<li>加锁并往runningOperations中增加一个operation</li>
+<li>获取cacheKey</li>
+<li>获取cacheOptions, 注意一下这里的位操作，学习了get</li>
+<li><p>通过imageCache 获得一个cacheOperaion对象，</p>
+<ol>
+<li>cache完成之后的回调里，首先是weak strong dance</li>
+<li>判空，或者已经取消的情况下从running中移除, return</li>
+<li>根据options判断是否需要下载，else if有cacheImage的情况，else 没有cache并且被delegate cancel的情况</li>
+<li>如果cache中找到了对应的图片，但是options中是refreshCache的设置，首先通知一下外部cacheType</li>
+<li>设置downloadOperations</li>
+<li><p>设置operation的downloadToken</p>
+<ol>
+<li>下载完成之后判空，判cancel</li>
+<li>判断错误，记录错误</li>
+<li>下载成功根据options 移除错误</li>
+<li>根据options 是否保存到disk</li>
+<li>scaledImageForKey</li>
+<li>根据不同的case 去storeImage</li>
+<li>移除operation</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>return这个operation</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (nullable NSOperation *)queryCacheOperationForKey:(nullable NSString *)key options:(SDImageCacheOptions)options done:(nullable SDCacheQueryCompletedBlock)doneBlock &#123;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>判断key</li>
+<li>从内存中寻找image</li>
+<li>从disk中寻找diskData</li>
+<li>从diskData–&gt;diskImage(创建，旋转，缩放，解码)</li>
+<li>塞到内存缓存中去</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (nullable SDWebImageDownloadToken *)downloadImageWithURL:(nullable NSURL *)url</span><br><span class="line">                                                   options:(SDWebImageDownloaderOptions)options</span><br><span class="line">                                                  progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock</span><br><span class="line">                                                 completed:(nullable SDWebImageDownloaderCompletedBlock)completedBlock</span><br></pre></td></tr></table></figure>
+<ol>
+<li>使用了一个weak</li>
+<li>return DownloadToken<br>这是可以看到一个奇怪的方式，createCallback,创建request, 设置各种参数创建自定义的operation</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (nullable SDWebImageDownloadToken *)addProgressCallback:(SDWebImageDownloaderProgressBlock)progressBlock</span><br><span class="line">                                           completedBlock:(SDWebImageDownloaderCompletedBlock)completedBlock</span><br><span class="line">                                                   forURL:(nullable NSURL *)url</span><br><span class="line">                                           createCallback:(SDWebImageDownloaderOperation *(^)(void))createCallback</span><br></pre></td></tr></table></figure>
+<ol>
+<li>判断url</li>
+<li>加锁，取出operation,如果没有就创建operation,设置一个完成的回调，将operation添加到queue中去，加入队列则开始下载了。</li>
+<li>创建一个token,并返回</li>
+</ol>
+<p>此处，多线程的自定义operation操作很棒！值得深入学习！</p>
+<p>这其中<br>SDWebImageDownloader ==== AFHTTPSessionManager<br>SDWebImageDownloaderOperation ===== AFURLSessionManagerTaskDelegate</p>
+<p>其中AFNetworking中是维护了一个可变字典，SDWebImage中是遍历downQueue中的operation, 最终使用的都是dataTaskIdentifiter,直观感觉还是字典更快一些。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/04/17/SDWebImage源码学习/" data-id="cjxpp24ve000gcyz60ehofplb" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Autolayout学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/03/11/Autolayout学习笔记/" class="article-date">
+  <time datetime="2018-03-11T06:48:11.000Z" itemprop="datePublished">2018-03-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/11/Autolayout学习笔记/">Autolayout学习笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>首先说一下我个人的观点，80%业务UI应该以IB的形式，15%应该用Masnory的方式，5%使用frame。IB发展到目前的阶段，我觉得已经不存在什么多人协作的问题了，性能我觉得也不是App的瓶颈所在。问题可能在于某一些动态创建不是很好处理，或者是大量创建重复元素的时候（是不是应该使用UITableView或者UICollectionView呢）。在某一些动画的场合可能还是frame要好一些。</p>
+<ol>
+<li><p>Using Code<br>我想现在主体还是使用这种方式的同学，应该已经很少了，这种方式缺点和优点同样明显。在适配方面简直不可原谅，也许有一些别的方法可以缓解（比如定义一个宏，方法根据屏幕比列去做缩放）但是在apple爸爸已经提供了Autolayout的基础上何必逆流呢？但是有一些动画场景，比如涉及到CALayer的地方，没办法🤷‍♀️只能是frame了</p>
+</li>
+<li><p>Using PureLayout &amp; Masonry/SnapKit<br>这是我接触iOS一来使用的最久的方式，也是目前市面上的主流吧。前一个框架可能使用者少一些，后一个从github的star排名来说绝对是火爆。作为之前的纯代码党的我来说，这套方案比什么VFL靠谱很多，至少不会因为一个typo满世界找原因，相比之前冗长的代码来说，简直就是福音。曾经的我以为只有代码敲出来的才是最好的，感觉自己控制了所有的细节。可是有一天我累了，每当写起大段的UI代码的时候，头都是很疼的，因为还需要起名字。</p>
+</li>
+<li><p>Using Interface Builder<br>这是我最近在使用的方式，其实很早之前我就了解过这个方式，不过由于之前的团队成员不太赞成，我也没有强行使用。首先我觉得要拥抱变化拥抱新事物，虽然有缺点，但都不是致命的，优点在于可视化，表现力强，就算是个外行也能看懂，UI站在你身后都能跟你聊两句~~（向做一点…向右一点…</p>
+</li>
+</ol>
+<p>这里我还是主要说说2，3点吧<br>首先是Masonry<br>Masonry的代码写在哪里？文档说 mas_makeConstraints一系列方法写在updateConstraints这个方法中，但是要注意这个方法是会调用多次的，于是在Snapkit的demo中就会有一个标志位保证其只执行一次。而在Masonry的demo中View 都是现在init中，ViewController则是写在ViewDidLoad中。这点我个人也不是很确定，不过我现在是使用IB为主，我就不需要考虑写在哪里了✌️。</p>
+<p>然后就是IB<br>并不是用了IB就可以随便写了，好的层次结构不管使用frame masonry 还是IB 写出来都是好维护的，相反层次混乱思路不清晰就是一团糟，需要足够理解设计者的意图才能写好UI。</p>
+<p>-setNeedsUpdateConstraints<br>-setNeedsLayout<br>-setNeedsDisplay</p>
+<p>核心方法1</p>
+<ul>
+<li>(void)updateConstraints<br>如果你需要在button点击之后调整constraint那么一定要立刻更改，为了保证在同一个runloop中。<br>这其中对应了三个,xxxIfNeeded,setNeedsxxx,xxxSomething。其实ifNeeded才会立刻执行，Needsxxx是会收集然后一起执行（waits for the next update cycle），xxxSomething一般都不会主动去调用，只是用来重载。<br>我在文档最后看到一个important的提示，[super updateConstraints]要放在最后</li>
+</ul>
+<p>核心方法2</p>
+<ul>
+<li>(void)layoutSubviews;<br>赶在视图绘制出来之前抓紧重写一下这个方法</li>
+</ul>
+<p>核心方法3</p>
+<ul>
+<li>(void)drawRect:(CGRect)rect;<br>一般不需要重写这个方法。</li>
+</ul>
+<ol>
+<li>动态计算高度<br>在iOS中最多的地方其实就是Cell的自适应高度了，我来详细解释一下这个方式。<br>在iOS5以后的api中tableView多了一个UITableViewAutomaticDimension的常量，这个常量是-1。这个常量是rowHeight, estimatedRowHeight等一系列高度的默认值。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath;</span><br><span class="line">@property (nonatomic) CGFloat rowHeight;             // default is UITableViewAutomaticDimension</span><br><span class="line">@property (nonatomic) CGFloat estimatedRowHeight     // default is UITableViewAutomaticDimension, set to 0 to disable</span><br></pre></td></tr></table></figure>
+<p>当tableview 计算一个cell的高度的时候，首先回去检测是否实现了heightForRowAtIndexPath的方法，如果有则调用此方法<br>如果tableview没有实现heightForRowAtIndexPath的方法，就是rowHeight的作为高度。以上两种方式如果返回UITableViewAutomaticDimension，那么系统就会根据约束自己计算高度了。<br>estimatedRowHeight的设置要尽量接近真实的rowHeight, 不然主要是为了indicator会有跳动。</p>
+<p>那么我们在设置UITableViewAutomaticDimension的时候我们该怎么去做，约束怎么写呢？<br>答案就是：用约束去撑开cell！！！<br>如果在console会有一些警告，并且你确定你的约束写的没有问题的话，你可以将其中的一个高度相关的约束优先级设置成999即可</p>
+<ol>
+<li><p>如何布局<br>首先我们要理解UIView 可以类比为前端的div，他们都是轻量级的而且没有明确意义的。也就是说用它们容器使得层次更加清晰。好的层次绝对比建立一两个UIView要来的划算，不过最要命的还是命名。。</p>
+</li>
+<li><p>关于动态生成<br>这里说的是在TableViewCell中，如果有的内容时有时无，并不能通过简单显示隐藏来解决的话，那就直接拖动生成就显得力不从心了。这里我目前使用纯代码写约束解决的。如果有更好的方式请告诉我。</p>
+</li>
+<li><p>关于scrollView的autolayout这个在面试的时候也是经常被问到<br>除了设置常规的edges之后还需要设置contentView的宽高，使用这么一个contentView来撑开这个scrollView</p>
+</li>
+<li><p>在使用xib的过程中是否遇到过只是添加一个占位的UIView。<br>但是不设置宽高会有红红的警告，设置了宽高的话又会有问题（因为毕竟不是真实需要的宽高，真实需要的是根据数据生成的）。这是xib的约束有个Placeholder remove at build time的设置可以勾上，完美！</p>
+</li>
+<li><p>在使用UILabel的过程中有没有使用两个UILabel，当文字超长的时候挤压哪一个？当文字都短的时候拉伸哪一个？</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- (void)setContentHuggingPriority:(UILayoutPriority)priority forAxis:(UILayoutConstraintAxis)axis;</span><br><span class="line">- (void)setContentCompressionResistancePriority:(UILayoutPriority)priority forAxis:(UILayoutConstraintAxis)axis;</span><br></pre></td></tr></table></figure>
+<p>对于UILabel来说HuggingPriority默认是251被拉伸的难易度，CompressionResistancePriority默认是750被压缩的难易度，数值越大代表越稳定越不容易变化。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/03/11/Autolayout学习笔记/" data-id="cjxpp24uo0001cyz68qgnzhjz" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-CoreAnimation学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/28/CoreAnimation学习笔记/" class="article-date">
+  <time datetime="2018-02-28T01:15:51.000Z" itemprop="datePublished">2018-02-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/28/CoreAnimation学习笔记/">CoreAnimation学习笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>刚刚加入到一个新的团队，接到的第一个任务便是一个动画的需求，自然不能怠慢。之前的工作中对iOS的动画掌握仅仅限于UIView的Block动画，实在是惭愧，不如就这个机会好好研究一下这个CoreAnimation,于是才有这个笔记。搜索了一下资源，好评较高的是这个github的开源书籍<a href="https://github.com/AttackOnDobby/iOS-Core-Animation-Advanced-Techniques" target="_blank" rel="noopener">iOS-Core-Animation-Advanced-Techniques</a>。</p>
+<p>首先来了解一下基础知识。CoreAnimation并不仅仅是动画，What? 我这么多年的英语白学了么，且往下看。</p>
+<h2 id="UIView和CALayer"><a href="#UIView和CALayer" class="headerlink" title="UIView和CALayer"></a>UIView和CALayer</h2><p>UIView再熟悉不过啦，CALayer也许没那么熟，但是cornerRadius,borderWidth,borderColor等属性相比没有少用吧。看到CALayer这个名字，你应该会想到点什么对吧，没错前缀CA就是CoreAnimation的意思。那么下面是一道面试题，讲讲它们的关系。每一个UIView都有一个layer属性，这才是他显示的原因，CALayer并不知道响应链的存在，而且缺乏Autolayout的支持。但是为什么要分成两部分，主要是为了代码的复用，因为MacOS的显示也是CALayer, 但是鼠标、键盘的响应处理，却是截然不同的逻辑。UIView对CALayer进行了简单的封装，包含了大部分基础的属性。frame bounds center clipToBounds ==&gt; frame bounds position maskToBounds等等，但也不是全部，比如cornerRadius,shadowPath，还有一些别的没有暴露出来。学习CALayer是有必要的。一定程度上来说CALayer更轻量级，性能会有提高。（但是绝大部分还是UIView更合适，至少AutoLayout就已经让人无法拒绝了）</p>
+<h2 id="CALayer的属性简单讲解"><a href="#CALayer的属性简单讲解" class="headerlink" title="CALayer的属性简单讲解"></a>CALayer的属性简单讲解</h2><ol>
+<li>contents         id类型，但是只在iOS上只有传入一个CGImageRef类型的图片才会有显示</li>
+<li>contentGravity   对应图片的显示模式，有点对应UIView的ContentMode</li>
+<li>contentsScale    定义了寄宿图的像素尺寸和视图大小的比例</li>
+<li>maskToBounds     对应于UIView的ClipToBounds</li>
+<li>contentsRect     一般用于显示精灵图</li>
+<li><p>contentsCenter   规定拉伸区域</p>
+</li>
+<li><p>frame            外部坐标, 是由bounds,position,transform计算而来的</p>
+</li>
+<li>bounds           内部坐标</li>
+<li>position         锚点相对于父layer位置</li>
+<li>transform</li>
+<li>anchorPoint     默认位于layer的中心{0.5, 0.5}，相对坐标，可改变</li>
+<li>zPosition       float控制上下顺序</li>
+</ol>
+<p>虽然CALayer不能处理事件，但是却提供了两个帮助处理的方法</p>
+<ol>
+<li>containsPoint</li>
+<li><p>hitTest    </p>
+</li>
+<li><p>cornerRadius</p>
+</li>
+<li>borderWidth</li>
+<li>borderColor</li>
+<li>shadowColor,shadowOffset,shadowRadius</li>
+<li>shadowPath</li>
+<li>mask            mask不透明的地方就是保留下来的值</li>
+<li>opacity         对应UIView的Alpha</li>
+<li>shouldRasterize 栅格化</li>
+</ol>
+<h2 id="专有图层"><a href="#专有图层" class="headerlink" title="专有图层"></a>专有图层</h2><ol>
+<li>CAShapeLayer</li>
+<li>CATextLayer</li>
+<li>CATransformLayer</li>
+<li>CAGradientLayer</li>
+<li>CAReplicatorLayer</li>
+<li>CAScrollLayer</li>
+<li>CATiledLayer</li>
+<li>CAEmitterLayer</li>
+<li>CAEAGLLayer</li>
+<li>AVPlayerLayer</li>
+</ol>
+<h2 id="隐式动画"><a href="#隐式动画" class="headerlink" title="隐式动画"></a>隐式动画</h2><p>改变CALayer一个可做动画的属性时，属性会从先前的值平滑过渡到新的值，这一切都会默认行为。<br>CoreAnimation在每个runloop自动开始一次新的事务CATransaction。</p>
+<p>CATransaction通过入栈出栈的方式工作，可以设置时间和完成后的任务。<br>begin<br>setAnimationDuration<br>setCompletionBlock<br>commit</p>
+<p>隐身动画不能对UIView的关联图层起作用，那是如何禁用的呢？<br>-actionForKey: 主要是调用这个方法，以及内部的一系列方法。返回nil,则没有动画，返回CAAction协议对象，CALayer去做动画。<br>所以UIView其实就是layer的Delegate, 并且提供了-actionForLayer:forKey的实现方法。当不在一个动画块的实现中，UIView对所有图层行为返回nil，但是在动画block范围之内，它就返回了一个非空值。</p>
+<p>除此之外也可以通过setDisableActions，禁用隐式动画。</p>
+<p>当设置属性的时候改变的是模型图层，动画中看到的是呈现图层。<br>presentationLayer<br>modelLayer</p>
+<h2 id="显式动画"><a href="#显式动画" class="headerlink" title="显式动画"></a>显式动画</h2><p>能够对一些属性做指定的自定义动画，或者创建非线性动画，比如沿着任意一条曲线移动。</p>
+<h3 id="属性动画"><a href="#属性动画" class="headerlink" title="属性动画"></a>属性动画</h3><p>CAAnimation –&gt; CAPropertyAnimation –&gt; CABasicAnimation</p>
+<p>id fromValue<br>id toValue<br>id byValue</p>
+<p>动画很常见的问题是，动画结束之后又立刻变回原始值。这是因为动画并没有改变图层模型。所以我们需要在动画开始之前或者之后改变属性的值。</p>
+<p>动画之前：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">- (void)applyBasicAnimation:(CABasicAnimation *)animation toLayer:(CALayer *)layer</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    //set the from value (using presentation layer if available)</span><br><span class="line">    animation.fromValue = [(layer.presentationLayer ? layer.presentationLayer : layer) valueForKeyPath:animation.keyPath];</span><br><span class="line">    //update the property in advance</span><br><span class="line">    //note: this approach will only work if toValue != nil </span><br><span class="line">    [CATransaction begin];</span><br><span class="line">    [CATransaction setDisableActions:YES];</span><br><span class="line">    [layer setValue:animation.toValue forKeyPath:animation.keyPath];</span><br><span class="line">    [CATransaction commit];</span><br><span class="line">    //apply animation to layer</span><br><span class="line">    [layer addAnimation:animation forKey:nil];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>动画之后：</p>
+<p>-animationDidStop:finished:</p>
+<p>CAAnimation实现了KVC（键-值-编码）协议，于是你可以用-setValue:forKey:和-valueForKey:方法来存取属性。但是CAAnimation有一个与众不同的特性：它更像一个NSDictionary，可以让你随意设置键值对，即使和你使用的动画类所声明的属性并不匹配。</p>
+<h3 id="关键帧动画"><a href="#关键帧动画" class="headerlink" title="关键帧动画"></a>关键帧动画</h3><p>CAAnimation –&gt; CAPropertyAnimation –&gt; CAKeyframeAnimation</p>
+<p>values<br>path</p>
+<h3 id="动画组"><a href="#动画组" class="headerlink" title="动画组"></a>动画组</h3><p>CAAnimationGroup</p>
+<h2 id="过渡动画"><a href="#过渡动画" class="headerlink" title="过渡动画"></a>过渡动画</h2><p>CATransition</p>
+<h2 id="动画的时间"><a href="#动画的时间" class="headerlink" title="动画的时间"></a>动画的时间</h2><p>duration 默认0.25<br>repeatCount 默认1<br>repeatDuration 它让动画重复一个指定的时间，而不是指定次数。<br>autoreverses</p>
+<p>beginTime<br>speed<br>timeOffset</p>
+<p>fillMode</p>
+<h2 id="缓冲方程式"><a href="#缓冲方程式" class="headerlink" title="缓冲方程式"></a>缓冲方程式</h2><p>CAMediaTimingFunction timingFunctionWithName:   +functionWithControlPoints::::<br>timingFunctions 一个数组</p>
+<p>当一个复杂的缓冲出现的时候，并不能使用一个3次贝塞尔曲线描述，可以使用</p>
+<ol>
+<li>用CAKeyframeAnimation创建一个动画，然后分割成几个步骤，每个小步骤使用自己的计时函数</li>
+<li>使用定时器逐帧更新实现动画</li>
+</ol>
+<h2 id="CADisplayLink-NSTimer-NSRunloop"><a href="#CADisplayLink-NSTimer-NSRunloop" class="headerlink" title="CADisplayLink NSTimer NSRunloop"></a>CADisplayLink NSTimer NSRunloop</h2><h2 id="性能调优，CPU、GPU-高效绘图，图像IO-图层性能"><a href="#性能调优，CPU、GPU-高效绘图，图像IO-图层性能" class="headerlink" title="性能调优，CPU、GPU, 高效绘图，图像IO,图层性能"></a>性能调优，CPU、GPU, 高效绘图，图像IO,图层性能</h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/" data-id="cjxpp24ur0002cyz6gc7ybxmm" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    <a class="extend prev" rel="prev" href="/">&laquo; __('prev')</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/">__('next') &raquo;</a>
+  </nav>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

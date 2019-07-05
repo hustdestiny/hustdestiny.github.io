@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>iOS逆向开发学习笔记（2） | Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="简单记录一下逆向抖音的过程。 准备 越狱手机一台，iPhone5s+10.3.3 iFunbox Clutch class-dump Hopper Reveal Charles Thoes Keychain-Dumper  干活 给越狱手机安装工具 substrate safemode(很多deb的依赖) dropbear(ssh工具) preferencesload + sslkillswitc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS逆向开发学习笔记（2）">
+<meta property="og:url" content="http://yoursite.com/2018/10/25/iOS逆向开发学习笔记（2）/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="简单记录一下逆向抖音的过程。 准备 越狱手机一台，iPhone5s+10.3.3 iFunbox Clutch class-dump Hopper Reveal Charles Thoes Keychain-Dumper  干活 给越狱手机安装工具 substrate safemode(很多deb的依赖) dropbear(ssh工具) preferencesload + sslkillswitc">
+<meta property="og:updated_time" content="2019-01-03T08:13:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS逆向开发学习笔记（2）">
+<meta name="twitter:description" content="简单记录一下逆向抖音的过程。 准备 越狱手机一台，iPhone5s+10.3.3 iFunbox Clutch class-dump Hopper Reveal Charles Thoes Keychain-Dumper  干活 给越狱手机安装工具 substrate safemode(很多deb的依赖) dropbear(ssh工具) preferencesload + sslkillswitc">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-iOS逆向开发学习笔记（2）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/10/25/iOS逆向开发学习笔记（2）/" class="article-date">
+  <time datetime="2018-10-25T12:55:38.000Z" itemprop="datePublished">2018-10-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      iOS逆向开发学习笔记（2）
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>简单记录一下逆向抖音的过程。</p>
+<h1 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h1><ul>
+<li>越狱手机一台，iPhone5s+10.3.3</li>
+<li>iFunbox</li>
+<li>Clutch</li>
+<li>class-dump</li>
+<li>Hopper</li>
+<li>Reveal</li>
+<li>Charles</li>
+<li>Thoes</li>
+<li>Keychain-Dumper</li>
+</ul>
+<h1 id="干活"><a href="#干活" class="headerlink" title="干活"></a>干活</h1><ol>
+<li><p>给越狱手机安装工具<br> substrate safemode(很多deb的依赖)<br> dropbear(ssh工具)<br> preferencesload + sslkillswitch(用来抓包)<br> reveal2loader(用来看层级结构)<br> cycript(执行代码)<br> AppSync-Unified + appinst(安装砸壳后的ipa)</p>
+</li>
+<li><p>将Clutch，cp到手机上并赋予执行权限，找出抖音的序号，砸壳会输出砸壳后的路径</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chmod +x Clutch</span><br><span class="line">Clutch -i</span><br><span class="line">Clutch -d (index)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改名字后copy到电脑上<br> 使用class-dump，提取头文件<br> 使用Hopper，分析二进制，获得部分汇编实现（我推荐分析完保存一份，不然每次打开都很慢）</p>
+</li>
+<li><p>使用reveal分析UI</p>
+<p> 首先在越狱手机安装Reveal2Loader，在Mac端安装Revealv4(8796)<br> 这好像没什么好说的，找出感兴趣的页面或者逻辑。因为能直接看到对象的地址，所以配合cycript简直无敌。</p>
+</li>
+<li><p>使用cycript在运行时尝试你的想法，具体cycript自行百度之</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cycript -p Aweme</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用Charles进行抓包</p>
+<p> 但是我发现抖音，只有刚刚安装，并且第一次打开才可以抓包。kill之后就不可以抓包了。<del>（当然删除沙盒之后也可以）很奇怪</del>。和SSLPinning相关待补充。</p>
+</li>
+<li><p>Keychain-Dumper</p>
+<p> <a href="https://github.com/ptoomey3/Keychain-Dumper" target="_blank" rel="noopener">github地址</a></p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cd /var/Keychains</span><br><span class="line">chmod +r keychain-2.db</span><br><span class="line">cp /User/Media/ASO/keychain_dumper /bin/keychain_dumper</span><br><span class="line">chmod +x /bin/keychain_dumper</span><br><span class="line">keychain_dumper &gt; keychain-export.txt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Hopper+lldb</p>
+<p> 首先做一次端口映射，这样就可以通过USB直接访问手机啦，达到的效果就是<br> 通过访问电脑的2222端口访问到手机的22端口，22是手机的ssh端口<br> 通过访问电脑的3333端口访问到手机的1234端口，1234是后面的debugserver的端口</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iproxy 2222 22</span><br><span class="line">iproxy 3333 1234</span><br></pre></td></tr></table></figure>
+<p> <a href="https://www.cnblogs.com/ludashi/p/5730338.html" target="_blank" rel="noopener">调试教程</a></p>
+</li>
+<li><p>使用Thoes，编写插件</p>
+<p> 此处省略一千字。。</p>
+</li>
+</ol>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>其实这些工具的使用都只是皮毛，稍微有点入门的话，应该是分析，汇编，还原函数。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/10/25/iOS逆向开发学习笔记（2）/" data-id="cjxpp24vn000ocyz6hhhhx04z" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/12/29/闲聊/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          闲聊
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/09/26/中秋以后/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">中秋以后</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

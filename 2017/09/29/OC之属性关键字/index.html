@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>OC之属性关键字 | Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="assginassgin 用于纯量属性，不会增加引用计数。不要用来修饰对象，因为对象释放后，assgin修饰的变量不会置为nil，可能会导致野指针错误！ weak用于对象不使retainCount增加，对象释放后会置为nil。  runtime 对注册的类，会进行布局，对于weak对象会放入一个hash表中。用weak指向的对象内存地址作为key，当此对象的引用计数为0的时候会dealloc，假如">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OC之属性关键字">
+<meta property="og:url" content="http://yoursite.com/2017/09/29/OC之属性关键字/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="assginassgin 用于纯量属性，不会增加引用计数。不要用来修饰对象，因为对象释放后，assgin修饰的变量不会置为nil，可能会导致野指针错误！ weak用于对象不使retainCount增加，对象释放后会置为nil。  runtime 对注册的类，会进行布局，对于weak对象会放入一个hash表中。用weak指向的对象内存地址作为key，当此对象的引用计数为0的时候会dealloc，假如">
+<meta property="og:updated_time" content="2017-10-11T08:18:01.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="OC之属性关键字">
+<meta name="twitter:description" content="assginassgin 用于纯量属性，不会增加引用计数。不要用来修饰对象，因为对象释放后，assgin修饰的变量不会置为nil，可能会导致野指针错误！ weak用于对象不使retainCount增加，对象释放后会置为nil。  runtime 对注册的类，会进行布局，对于weak对象会放入一个hash表中。用weak指向的对象内存地址作为key，当此对象的引用计数为0的时候会dealloc，假如">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-OC之属性关键字" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/29/OC之属性关键字/" class="article-date">
+  <time datetime="2017-09-29T05:47:39.000Z" itemprop="datePublished">2017-09-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      OC之属性关键字
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="assgin"><a href="#assgin" class="headerlink" title="assgin"></a>assgin</h2><p>assgin 用于纯量属性，不会增加引用计数。不要用来修饰对象，因为对象释放后，assgin修饰的变量不会置为nil，可能会导致野指针错误！</p>
+<h2 id="weak"><a href="#weak" class="headerlink" title="weak"></a>weak</h2><p>用于对象不使retainCount增加，对象释放后会置为nil。</p>
+<blockquote>
+<p>runtime 对注册的类，会进行布局，对于weak对象会放入一个hash表中。用weak指向的对象内存地址作为key，当此对象的引用计数为0的时候会dealloc，假如weak指向的对象内存地址是a，那么就会以a为键，在这个weak表中搜索，找到所有以a为键的weak对象，从而设置为nil。反之如果对象本身先释放，则将其从table中删除。</p>
+</blockquote>
+<h2 id="strong"><a href="#strong" class="headerlink" title="strong"></a>strong</h2><p>用于对象会使retainCount 增加</p>
+<h2 id="copy"><a href="#copy" class="headerlink" title="copy"></a>copy</h2><p>区别在set方法不用。<br>Block为什么用Copy</p>
+<blockquote>
+<p>Note: You should specify copy as the property attribute, because a block needs to be copied to keep track of its captured state outside of the original scope. This isn’t something you need to worry about when using Automatic Reference Counting, as it will happen automatically, but it’s best practice for the property attribute to show the resultant behavior. For more information, see Blocks Programming Topics.</p>
+</blockquote>
+<h2 id="atomic"><a href="#atomic" class="headerlink" title="atomic"></a>atomic</h2><p>原子性</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">- (UITextField *) userName &#123;</span><br><span class="line">    UITextField *retval = nil;</span><br><span class="line">    @synchronized(self) &#123;</span><br><span class="line">        retval = [[userName retain] autorelease];</span><br><span class="line">    &#125;</span><br><span class="line">    return retval;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void) setUserName:(UITextField *)userName_ &#123;</span><br><span class="line">    @synchronized(self) &#123;</span><br><span class="line">      [userName release];</span><br><span class="line">      userName = [userName_ retain];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="nonatomic"><a href="#nonatomic" class="headerlink" title="nonatomic"></a>nonatomic</h2><p>非原子性</p>
+<h2 id="readonly"><a href="#readonly" class="headerlink" title="readonly"></a>readonly</h2><p>只读，不合成set方法</p>
+<h2 id="nullable"><a href="#nullable" class="headerlink" title="nullable"></a>nullable</h2><p>可以为nil 对应Swift的optional</p>
+<h2 id="nonnull"><a href="#nonnull" class="headerlink" title="nonnull"></a>nonnull</h2><p>不可以为nil 对应Swift的non optional</p>
+<h2 id="ViewController的生命周期"><a href="#ViewController的生命周期" class="headerlink" title="ViewController的生命周期"></a>ViewController的生命周期</h2><p>First viewDidLoad       //1<br>First viewWillAppear    //2<br>First viewDidAppear     //3<br>—Click Push<br>First viewWillDisappear //4<br>Second viewDidLoad      //5<br>Second viewWillAppear   //6<br>—Push Finish<br>First viewDidDisappear  //7<br>Second viewDidAppear    //8<br>—Click Pop<br>Second viewWillDisappear//9<br>First viewWillAppear    //10<br>—Pop Finish<br>Second viewDidDisappear //11<br>First viewDidAppear     //12</p>
+<h2 id="Autolayout的过程"><a href="#Autolayout的过程" class="headerlink" title="Autolayout的过程"></a>Autolayout的过程</h2><p>(setNeedUpdateConstraints,updateConstraintsIfNeeded)-&gt;updateConstraints<br>(setNeedsLayout,layoutIfNeeded)-&gt; layoutSubViews<br>-&gt; drawRect</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="cjxpp24vd000fcyz6en7v543s" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          iOS之HTTP,HTTPS,TCP,UDP,DNS
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/09/28/OC之消息与转发/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">OC之消息与转发</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

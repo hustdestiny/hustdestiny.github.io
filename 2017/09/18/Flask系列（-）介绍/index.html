@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Flask系列（-）介绍 | Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Flask是一个微(micro)框架。微框架不是说所有的内容都得写在同一个文件中，也不是说它缺少功能。微框架意味着它定位核心简洁而扩展性强。不会替你去做很多的决定和限制，比如不会去限制你是用什么样的数据库（Sql和NoSql都可以）。不过，它也帮你做了一些决定。比如它决定内置使用jinja2这个模板引擎。个人觉得和他的web框架的定位有关，但是更换模板引擎也是很简单的事情。基本上所有的都取决于你，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flask系列（-）介绍">
+<meta property="og:url" content="http://yoursite.com/2017/09/18/Flask系列（-）介绍/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="Flask是一个微(micro)框架。微框架不是说所有的内容都得写在同一个文件中，也不是说它缺少功能。微框架意味着它定位核心简洁而扩展性强。不会替你去做很多的决定和限制，比如不会去限制你是用什么样的数据库（Sql和NoSql都可以）。不过，它也帮你做了一些决定。比如它决定内置使用jinja2这个模板引擎。个人觉得和他的web框架的定位有关，但是更换模板引擎也是很简单的事情。基本上所有的都取决于你，">
+<meta property="og:updated_time" content="2017-09-19T10:51:25.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flask系列（-）介绍">
+<meta name="twitter:description" content="Flask是一个微(micro)框架。微框架不是说所有的内容都得写在同一个文件中，也不是说它缺少功能。微框架意味着它定位核心简洁而扩展性强。不会替你去做很多的决定和限制，比如不会去限制你是用什么样的数据库（Sql和NoSql都可以）。不过，它也帮你做了一些决定。比如它决定内置使用jinja2这个模板引擎。个人觉得和他的web框架的定位有关，但是更换模板引擎也是很简单的事情。基本上所有的都取决于你，">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Flask系列（-）介绍" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/18/Flask系列（-）介绍/" class="article-date">
+  <time datetime="2017-09-18T02:42:42.000Z" itemprop="datePublished">2017-09-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Flask系列（-）介绍
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Flask是一个微-micro-框架。"><a href="#Flask是一个微-micro-框架。" class="headerlink" title="Flask是一个微(micro)框架。"></a>Flask是一个微(micro)框架。</h2><p>微框架不是说所有的内容都得写在同一个文件中，也不是说它缺少功能。<br>微框架意味着它定位核心简洁而扩展性强。<br>不会替你去做很多的决定和限制，比如不会去限制你是用什么样的数据库（Sql和NoSql都可以）。<br>不过，它也帮你做了一些决定。比如它决定内置使用jinja2这个模板引擎。个人觉得和他的web框架的定位有关，但是更换模板引擎也是很简单的事情。<br>基本上所有的都取决于你，梦想有多大舞台就有过大！</p>
+<h2 id="Flask有许多非常有意义的默认值的配置值，和一些符合理约定。"><a href="#Flask有许多非常有意义的默认值的配置值，和一些符合理约定。" class="headerlink" title="Flask有许多非常有意义的默认值的配置值，和一些符合理约定。"></a>Flask有许多非常有意义的默认值的配置值，和一些符合理约定。</h2><p>比如templates和static文件夹。当然这也是可以改变的，不过通常你不需要这么做，特别是在开始的时候。</p>
+<h2 id="Flask的扩展"><a href="#Flask的扩展" class="headerlink" title="Flask的扩展"></a>Flask的扩展</h2><p>当开始使用Flask的时候，你将会发现大量的扩展。Flask的核心团队会review这些扩展，确保这些扩展不会打乱未来的版本更新。Flask包含许多钩子去自定义它的行为。当然你需要更多的自定义的时候，你还可以实现一个Flask的子类。</p>
+<h2 id="Flask安装"><a href="#Flask安装" class="headerlink" title="Flask安装"></a>Flask安装</h2><p>Flask有两个依赖库，Werkzeug和Jinja2。前者是一个WSGI的工具集。后者是模板渲染引擎。<br>这里有个趣闻，据说当年Flask的作者开发了Werkzeug推荐给Bottle，不过Bottle的作者无情拒绝~~然后就出现了Flask，一切都是这么的偶然。也有Django的作者感叹，Flask成为了Django希望成为的样子。扯远了，回归主题。  </p>
+<p>这里首先推荐使用virtualenv。virtualenv正如它的名字一样，用它可以创建虚拟环境，可以是python3或者python2的。他解决的问题是不同的application可能会依赖不同python版本，不同package版本。在iOS项目中每当Swift版本升级就是直接花一两天升级上去，或者在project或者workspace中设置不同的Swift版本，才可以运行不同的Swift版本项目。至于为什么Python中不是直接升级上去，我想这也是众多python开发者心中的痛吧。</p>
+<p>简单的几行命令就可以完成安装，只能说棒棒哒💯</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">virtualenv -p python3 venv      /* 1. 安装一个python3的虚拟环境 */</span><br><span class="line"><span class="built_in">source</span> venv/bin/activate        /* 2. 启动虚拟环境 */</span><br><span class="line">pip3 install flask              /* 3. 安装flask */</span><br><span class="line">pip3 freeze &gt; requirement.txt   /* 4. 将所有依赖保存到requirement.txt中 */</span><br><span class="line">deactivate                      /* 5. 关闭虚拟环境 */</span><br></pre></td></tr></table></figure>
+<h2 id="Flask-Hello-World"><a href="#Flask-Hello-World" class="headerlink" title="Flask Hello World!"></a>Flask Hello World!</h2><p>所有的语言都是从helloworld开始的，所有RxSwift都是从login开始的，所有的web都是从todomvc开始的。<br>Flask作为一个web框架，我们暂且从hello world开始吧！<br>写一个文件hello.py</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">from flask import Flask</span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line">@app.route(&apos;/&apos;)</span><br><span class="line">def hello_world():</span><br><span class="line">    return &apos;Hello, World!&apos;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>首先我们从flask包中导入Flask类。（这个和js的风格反着，我好难受啊！）</li>
+<li>我们用Flask创建一个app实例。传入一个<strong>name</strong>的参数，为什么传入一个<strong>name</strong>因为flask会根据package的名字去寻找他的资源名字templates, statics, instance etc.</li>
+<li>函数顶部写入了一个route装饰器。URL指向下面的view function, 内部会自动将函数名作为endpoint，从而建立 url—&gt;endpoint—&gt;view function的映射，我一开始特别不理解为什么要中间转一层，后来发现防止函数重名，blueprint做铺垫等作用</li>
+<li>我们定义并实现了一个hello_world的function。这个function的返回值如果是字符串会被后续response类进一步处理</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">export</span> FLASK_APP=hello.py</span><br><span class="line">$ flask run</span><br></pre></td></tr></table></figure>
+<p>这样在浏览器的localhost:5000就可以看到一个大大的hello, world了！</p>
+<h2 id="留个尾巴"><a href="#留个尾巴" class="headerlink" title="留个尾巴"></a>留个尾巴</h2><p>flask的启动流程和route的流程，我们慢慢来。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/18/Flask系列（-）介绍/" data-id="cjxpp24uv0004cyz62s82j4bt" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/09/27/OC之Runtime/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          OC之Runtime
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/09/15/Flask初窥/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Flask初窥</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

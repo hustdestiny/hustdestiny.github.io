@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Autolayout学习笔记 | Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="首先说一下我个人的观点，80%业务UI应该以IB的形式，15%应该用Masnory的方式，5%使用frame。IB发展到目前的阶段，我觉得已经不存在什么多人协作的问题了，性能我觉得也不是App的瓶颈所在。问题可能在于某一些动态创建不是很好处理，或者是大量创建重复元素的时候（是不是应该使用UITableView或者UICollectionView呢）。在某一些动画的场合可能还是frame要好一些。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Autolayout学习笔记">
+<meta property="og:url" content="http://yoursite.com/2018/03/11/Autolayout学习笔记/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="首先说一下我个人的观点，80%业务UI应该以IB的形式，15%应该用Masnory的方式，5%使用frame。IB发展到目前的阶段，我觉得已经不存在什么多人协作的问题了，性能我觉得也不是App的瓶颈所在。问题可能在于某一些动态创建不是很好处理，或者是大量创建重复元素的时候（是不是应该使用UITableView或者UICollectionView呢）。在某一些动画的场合可能还是frame要好一些。">
+<meta property="og:updated_time" content="2018-04-16T13:34:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Autolayout学习笔记">
+<meta name="twitter:description" content="首先说一下我个人的观点，80%业务UI应该以IB的形式，15%应该用Masnory的方式，5%使用frame。IB发展到目前的阶段，我觉得已经不存在什么多人协作的问题了，性能我觉得也不是App的瓶颈所在。问题可能在于某一些动态创建不是很好处理，或者是大量创建重复元素的时候（是不是应该使用UITableView或者UICollectionView呢）。在某一些动画的场合可能还是frame要好一些。">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Autolayout学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/03/11/Autolayout学习笔记/" class="article-date">
+  <time datetime="2018-03-11T06:48:11.000Z" itemprop="datePublished">2018-03-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Autolayout学习笔记
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>首先说一下我个人的观点，80%业务UI应该以IB的形式，15%应该用Masnory的方式，5%使用frame。IB发展到目前的阶段，我觉得已经不存在什么多人协作的问题了，性能我觉得也不是App的瓶颈所在。问题可能在于某一些动态创建不是很好处理，或者是大量创建重复元素的时候（是不是应该使用UITableView或者UICollectionView呢）。在某一些动画的场合可能还是frame要好一些。</p>
+<ol>
+<li><p>Using Code<br>我想现在主体还是使用这种方式的同学，应该已经很少了，这种方式缺点和优点同样明显。在适配方面简直不可原谅，也许有一些别的方法可以缓解（比如定义一个宏，方法根据屏幕比列去做缩放）但是在apple爸爸已经提供了Autolayout的基础上何必逆流呢？但是有一些动画场景，比如涉及到CALayer的地方，没办法🤷‍♀️只能是frame了</p>
+</li>
+<li><p>Using PureLayout &amp; Masonry/SnapKit<br>这是我接触iOS一来使用的最久的方式，也是目前市面上的主流吧。前一个框架可能使用者少一些，后一个从github的star排名来说绝对是火爆。作为之前的纯代码党的我来说，这套方案比什么VFL靠谱很多，至少不会因为一个typo满世界找原因，相比之前冗长的代码来说，简直就是福音。曾经的我以为只有代码敲出来的才是最好的，感觉自己控制了所有的细节。可是有一天我累了，每当写起大段的UI代码的时候，头都是很疼的，因为还需要起名字。</p>
+</li>
+<li><p>Using Interface Builder<br>这是我最近在使用的方式，其实很早之前我就了解过这个方式，不过由于之前的团队成员不太赞成，我也没有强行使用。首先我觉得要拥抱变化拥抱新事物，虽然有缺点，但都不是致命的，优点在于可视化，表现力强，就算是个外行也能看懂，UI站在你身后都能跟你聊两句~~（向做一点…向右一点…</p>
+</li>
+</ol>
+<p>这里我还是主要说说2，3点吧<br>首先是Masonry<br>Masonry的代码写在哪里？文档说 mas_makeConstraints一系列方法写在updateConstraints这个方法中，但是要注意这个方法是会调用多次的，于是在Snapkit的demo中就会有一个标志位保证其只执行一次。而在Masonry的demo中View 都是现在init中，ViewController则是写在ViewDidLoad中。这点我个人也不是很确定，不过我现在是使用IB为主，我就不需要考虑写在哪里了✌️。</p>
+<p>然后就是IB<br>并不是用了IB就可以随便写了，好的层次结构不管使用frame masonry 还是IB 写出来都是好维护的，相反层次混乱思路不清晰就是一团糟，需要足够理解设计者的意图才能写好UI。</p>
+<p>-setNeedsUpdateConstraints<br>-setNeedsLayout<br>-setNeedsDisplay</p>
+<p>核心方法1</p>
+<ul>
+<li>(void)updateConstraints<br>如果你需要在button点击之后调整constraint那么一定要立刻更改，为了保证在同一个runloop中。<br>这其中对应了三个,xxxIfNeeded,setNeedsxxx,xxxSomething。其实ifNeeded才会立刻执行，Needsxxx是会收集然后一起执行（waits for the next update cycle），xxxSomething一般都不会主动去调用，只是用来重载。<br>我在文档最后看到一个important的提示，[super updateConstraints]要放在最后</li>
+</ul>
+<p>核心方法2</p>
+<ul>
+<li>(void)layoutSubviews;<br>赶在视图绘制出来之前抓紧重写一下这个方法</li>
+</ul>
+<p>核心方法3</p>
+<ul>
+<li>(void)drawRect:(CGRect)rect;<br>一般不需要重写这个方法。</li>
+</ul>
+<ol>
+<li>动态计算高度<br>在iOS中最多的地方其实就是Cell的自适应高度了，我来详细解释一下这个方式。<br>在iOS5以后的api中tableView多了一个UITableViewAutomaticDimension的常量，这个常量是-1。这个常量是rowHeight, estimatedRowHeight等一系列高度的默认值。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath;</span><br><span class="line">@property (nonatomic) CGFloat rowHeight;             // default is UITableViewAutomaticDimension</span><br><span class="line">@property (nonatomic) CGFloat estimatedRowHeight     // default is UITableViewAutomaticDimension, set to 0 to disable</span><br></pre></td></tr></table></figure>
+<p>当tableview 计算一个cell的高度的时候，首先回去检测是否实现了heightForRowAtIndexPath的方法，如果有则调用此方法<br>如果tableview没有实现heightForRowAtIndexPath的方法，就是rowHeight的作为高度。以上两种方式如果返回UITableViewAutomaticDimension，那么系统就会根据约束自己计算高度了。<br>estimatedRowHeight的设置要尽量接近真实的rowHeight, 不然主要是为了indicator会有跳动。</p>
+<p>那么我们在设置UITableViewAutomaticDimension的时候我们该怎么去做，约束怎么写呢？<br>答案就是：用约束去撑开cell！！！<br>如果在console会有一些警告，并且你确定你的约束写的没有问题的话，你可以将其中的一个高度相关的约束优先级设置成999即可</p>
+<ol>
+<li><p>如何布局<br>首先我们要理解UIView 可以类比为前端的div，他们都是轻量级的而且没有明确意义的。也就是说用它们容器使得层次更加清晰。好的层次绝对比建立一两个UIView要来的划算，不过最要命的还是命名。。</p>
+</li>
+<li><p>关于动态生成<br>这里说的是在TableViewCell中，如果有的内容时有时无，并不能通过简单显示隐藏来解决的话，那就直接拖动生成就显得力不从心了。这里我目前使用纯代码写约束解决的。如果有更好的方式请告诉我。</p>
+</li>
+<li><p>关于scrollView的autolayout这个在面试的时候也是经常被问到<br>除了设置常规的edges之后还需要设置contentView的宽高，使用这么一个contentView来撑开这个scrollView</p>
+</li>
+<li><p>在使用xib的过程中是否遇到过只是添加一个占位的UIView。<br>但是不设置宽高会有红红的警告，设置了宽高的话又会有问题（因为毕竟不是真实需要的宽高，真实需要的是根据数据生成的）。这是xib的约束有个Placeholder remove at build time的设置可以勾上，完美！</p>
+</li>
+<li><p>在使用UILabel的过程中有没有使用两个UILabel，当文字超长的时候挤压哪一个？当文字都短的时候拉伸哪一个？</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- (void)setContentHuggingPriority:(UILayoutPriority)priority forAxis:(UILayoutConstraintAxis)axis;</span><br><span class="line">- (void)setContentCompressionResistancePriority:(UILayoutPriority)priority forAxis:(UILayoutConstraintAxis)axis;</span><br></pre></td></tr></table></figure>
+<p>对于UILabel来说HuggingPriority默认是251被拉伸的难易度，CompressionResistancePriority默认是750被压缩的难易度，数值越大代表越稳定越不容易变化。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/03/11/Autolayout学习笔记/" data-id="cjxpp24uo0001cyz68qgnzhjz" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/04/17/SDWebImage源码学习/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          SDWebImage源码学习
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/02/28/CoreAnimation学习笔记/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">CoreAnimation学习笔记</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Destiny">
+<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Destiny">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-CocoaPods" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/06/06/CocoaPods/" class="article-date">
+  <time datetime="2019-06-06T06:28:33.000Z" itemprop="datePublished">2019-06-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/06/06/CocoaPods/">CocoaPods</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="什么是CocoaPods"><a href="#什么是CocoaPods" class="headerlink" title="什么是CocoaPods"></a>什么是CocoaPods</h1><p><a href="https://cocoapods.org/" target="_blank" rel="noopener">HomePage</a></p>
+<p>CocoaPods是Swift和Objective-C工程的依赖管理工具。</p>
+<h2 id="如何安装"><a href="#如何安装" class="headerlink" title="如何安装"></a>如何安装</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo gem install cocoapods</span><br></pre></td></tr></table></figure>
+<h1 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h1><h2 id="库的使用者"><a href="#库的使用者" class="headerlink" title="库的使用者"></a>库的使用者</h2><p>Podfile文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">platform :ios, &apos;8.0&apos;                //平台，iOS版本</span><br><span class="line">use_frameworks!                     //swift项目没法打成.a文件</span><br><span class="line">inhibit_all_warnings!               //忽略框架的警告</span><br><span class="line"></span><br><span class="line">target &apos;MyApp&apos; do</span><br><span class="line">  pod &apos;AFNetworking&apos;, &apos;~&gt; 2.6&apos;</span><br><span class="line">  pod &apos;ORStackView&apos;, &apos;~&gt; 3.0&apos;</span><br><span class="line">  pod &apos;SwiftyJSON&apos;, &apos;~&gt; 2.3&apos;</span><br><span class="line">end</span><br></pre></td></tr></table></figure></p>
+<p>source ‘<a href="https://github.com/CocoaPods/Specs.git&#39;" target="_blank" rel="noopener">https://github.com/CocoaPods/Specs.git&#39;</a></p>
+<p>target<br>pod<br>podspec :path =&gt; ‘/Documents/PrettyKit/PrettyKit.podspec’//指定spec<br>abstract_target//抽象target<br>abstract!// 当前target的抽象模式<br>inherit!// 当前target继承模式  </p>
+<p>pod ‘SSZipArchive’, :inhibit_warnings =&gt; false// 忽略警告⚠️  </p>
+<h3 id="hooks"><a href="#hooks" class="headerlink" title="hooks"></a>hooks</h3><p>pre_install<br>post_install  </p>
+<h3 id="pod-install-or-pod-update"><a href="#pod-install-or-pod-update" class="headerlink" title="pod install or pod update"></a>pod install or pod update</h3><p>pod install //当第一个从podfile安装的时候，添加或者移除pods的时候，Podfile.lock中没有的它会添加<br>pod update  //当你想更新pod的版本的时候  </p>
+<h2 id="库的开发者"><a href="#库的开发者" class="headerlink" title="库的开发者"></a>库的开发者</h2><p>主要工作是配置Spec文件。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pod spec create Peanut</span><br></pre></td></tr></table></figure></p>
+<p><a href="https://guides.cocoapods.org/making/specs-and-specs-repo.html" target="_blank" rel="noopener">Specs</a></p>
+<h2 id="私有仓库"><a href="#私有仓库" class="headerlink" title="私有仓库"></a>私有仓库</h2><p>主要是建立一个podspecs.git仓库。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/06/06/CocoaPods/" data-id="cjxpp24ut0003cyz68il1vtos" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-函数小计和数据结构" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/04/07/函数小计和数据结构/" class="article-date">
+  <time datetime="2019-04-07T11:46:27.000Z" itemprop="datePublished">2019-04-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>绝对值函数<br>fabs、labs</p>
+<p>向上取整、向下取整<br>ceil、floor</p>
+<p>四舍五入<br>round</p>
+<p>正则表达式<br>^ // 以什么开头<br>$</p>
+<ol>
+<li><p>线性结构，链表，stack，queue</p>
+</li>
+<li><p>树<br> 4.1 顺序查找，哨兵的应用 O(N)<br> 4.2 二分查找，O(logN)，依赖排序<br> 4.3 二叉树概念<br> 4.4 二叉树遍历，前序，中序，后序（堆栈），层序（队列）<br> 4.5 二叉搜索树，查找，插入，删除<br> 4.6 平衡二叉树，调整（rr,ll, rl, lr）旋转<br> 4.7 堆(完全二叉树，最大最小堆)，哈费曼树（权值），集合</p>
+</li>
+<li><p>图<br> 5.1 图的概念<br> 5.2 图的遍历，深度优先(栈)，广度优先（队列）<br> 5.3 最短路径<br> 5.4 最小生成树<br> 5.5 拓扑排序</p>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/04/07/函数小计和数据结构/" data-id="cjxpp24vu000ucyz68fenst0l" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-git-handbook" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/03/07/git-handbook/" class="article-date">
+  <time datetime="2019-03-07T13:03:24.000Z" itemprop="datePublished">2019-03-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/03/07/git-handbook/">git handbook</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><p>创建并切换分支</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git checkout -b &lt;dst&gt; &lt;src&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改分支名字</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git branch -m &lt;oldname&gt; &lt;newname&gt;</span><br></pre></td></tr></table></figure>
+<p> 修改当前分支</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git branch -m &lt;newname&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>合并commit</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">git checkout -b dev zhou-dev</span><br><span class="line">git commit -am<span class="string">"Add1"</span></span><br><span class="line">git commit -am<span class="string">"Add2"</span></span><br><span class="line">git commit -am<span class="string">"Add3"</span></span><br><span class="line">```    </span><br><span class="line"></span><br><span class="line">```bash</span><br><span class="line">git rebase -i dev</span><br><span class="line">// 这命令允许合并 从zhou-dev 到 dev的三个commit</span><br><span class="line">// 在交互模式中 将顶部pick </span><br><span class="line">pick &lt;commitid&gt; Add1</span><br><span class="line">pick &lt;commitid&gt; Add2</span><br><span class="line">pick &lt;commitid&gt; Add3</span><br></pre></td></tr></table></figure>
+<p> 改为</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pick &lt;commitid&gt; Add1</span><br><span class="line">squash &lt;commitid&gt; Add2</span><br><span class="line">squash &lt;commitid&gt; Add3</span><br></pre></td></tr></table></figure>
+<p> 然后</p>
+ <figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">:<span class="keyword">wq</span></span><br></pre></td></tr></table></figure>
+<p> 进入另一个页面，重新编辑commit message </p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">:wq</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>配置(加上–global代表全局，不加则代表本仓库)</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git config [--global] user.name <span class="string">"xxx"</span></span><br><span class="line">git config [--global] user.email <span class="string">"xxx"</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当已经track了某些文件，后加入gitignore</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git rm -r --cached .</span><br><span class="line">git add .</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/03/07/git-handbook/" data-id="cjxpp24vj000kcyz6cwzgexr1" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-闲聊" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/12/29/闲聊/" class="article-date">
+  <time datetime="2018-12-29T09:53:35.000Z" itemprop="datePublished">2018-12-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/12/29/闲聊/">闲聊</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>不知不觉2018年，从身边划过。</p>
+<h2 id="生活"><a href="#生活" class="headerlink" title="生活"></a>生活</h2><p>似乎习惯了平淡的生活，其实👨‍💻‍的周一到周五是没有生活的，只有周末有。<br>租的房子阳光很好，幻想很多次周六都是被阳光照醒的，其实不是。周六醒的比平时还要早，不知是不是步入中年。<br>醒来后小花匠喜欢摆弄她的宝贝，绿萝、多肉、栀子花、🌵、还有我叫不上名字的。<br>也尝试过养一些🐟，但不知道是水温没有控制好还是增氧机不太行，小鱼儿们一条一条挂了，挺伤心。<br>最后尝试养一些不容易出问题的。两只草龟，嗯！一直不爱动，另一只经常爬上背叠罗汉~~还得等他们大一些才好玩。<br>喜欢看吃鸡主播托马斯玩游戏，生活很好听。自己也玩了几局太难了，简直小聋瞎，菜是原罪。追了TI，LGD还是差一点运气，May皇表现很好。<br>大厨的手艺越来越好了，增加了好多拿手菜，我也跟着涨了不少膘。一碗麻婆豆腐简直增加我唾液分泌。手工擀面包饺子也是极其成功的。</p>
+<h2 id="投资"><a href="#投资" class="headerlink" title="投资"></a>投资</h2><p>开始买了些基金，虽然有专门的基金经理打理，但是觉得基金还是太不灵活了，也看不清楚经理的操作，不太喜欢这种失控的感觉。<br>然后开始买股票，真的是瞎买，就跟赌博一样买大买小。看到一些公众号，大多也是推荐买指数的。其实明白了一个道理，没什么是稳赚不赔的。真要能看懂公司的财报，发展的方向真的是不容易，耗时耗力。所以没有什么是天上掉下来的，就算有也不会天天掉。<br>再后来就不买了，现阶段还是工作更重要，时间本来就很宝贵，投资这件事暂且放放。</p>
+<h2 id="工作"><a href="#工作" class="headerlink" title="工作"></a>工作</h2><p>暂无，农历年末再补充吧</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/12/29/闲聊/" data-id="cjxpp24vt000scyz64n9pu13t" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-iOS逆向开发学习笔记（2）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/10/25/iOS逆向开发学习笔记（2）/" class="article-date">
+  <time datetime="2018-10-25T12:55:38.000Z" itemprop="datePublished">2018-10-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>简单记录一下逆向抖音的过程。</p>
+<h1 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h1><ul>
+<li>越狱手机一台，iPhone5s+10.3.3</li>
+<li>iFunbox</li>
+<li>Clutch</li>
+<li>class-dump</li>
+<li>Hopper</li>
+<li>Reveal</li>
+<li>Charles</li>
+<li>Thoes</li>
+<li>Keychain-Dumper</li>
+</ul>
+<h1 id="干活"><a href="#干活" class="headerlink" title="干活"></a>干活</h1><ol>
+<li><p>给越狱手机安装工具<br> substrate safemode(很多deb的依赖)<br> dropbear(ssh工具)<br> preferencesload + sslkillswitch(用来抓包)<br> reveal2loader(用来看层级结构)<br> cycript(执行代码)<br> AppSync-Unified + appinst(安装砸壳后的ipa)</p>
+</li>
+<li><p>将Clutch，cp到手机上并赋予执行权限，找出抖音的序号，砸壳会输出砸壳后的路径</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">chmod +x Clutch</span><br><span class="line">Clutch -i</span><br><span class="line">Clutch -d (index)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改名字后copy到电脑上<br> 使用class-dump，提取头文件<br> 使用Hopper，分析二进制，获得部分汇编实现（我推荐分析完保存一份，不然每次打开都很慢）</p>
+</li>
+<li><p>使用reveal分析UI</p>
+<p> 首先在越狱手机安装Reveal2Loader，在Mac端安装Revealv4(8796)<br> 这好像没什么好说的，找出感兴趣的页面或者逻辑。因为能直接看到对象的地址，所以配合cycript简直无敌。</p>
+</li>
+<li><p>使用cycript在运行时尝试你的想法，具体cycript自行百度之</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cycript -p Aweme</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用Charles进行抓包</p>
+<p> 但是我发现抖音，只有刚刚安装，并且第一次打开才可以抓包。kill之后就不可以抓包了。<del>（当然删除沙盒之后也可以）很奇怪</del>。和SSLPinning相关待补充。</p>
+</li>
+<li><p>Keychain-Dumper</p>
+<p> <a href="https://github.com/ptoomey3/Keychain-Dumper" target="_blank" rel="noopener">github地址</a></p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cd /var/Keychains</span><br><span class="line">chmod +r keychain-2.db</span><br><span class="line">cp /User/Media/ASO/keychain_dumper /bin/keychain_dumper</span><br><span class="line">chmod +x /bin/keychain_dumper</span><br><span class="line">keychain_dumper &gt; keychain-export.txt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Hopper+lldb</p>
+<p> 首先做一次端口映射，这样就可以通过USB直接访问手机啦，达到的效果就是<br> 通过访问电脑的2222端口访问到手机的22端口，22是手机的ssh端口<br> 通过访问电脑的3333端口访问到手机的1234端口，1234是后面的debugserver的端口</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iproxy 2222 22</span><br><span class="line">iproxy 3333 1234</span><br></pre></td></tr></table></figure>
+<p> <a href="https://www.cnblogs.com/ludashi/p/5730338.html" target="_blank" rel="noopener">调试教程</a></p>
+</li>
+<li><p>使用Thoes，编写插件</p>
+<p> 此处省略一千字。。</p>
+</li>
+</ol>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>其实这些工具的使用都只是皮毛，稍微有点入门的话，应该是分析，汇编，还原函数。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/10/25/iOS逆向开发学习笔记（2）/" data-id="cjxpp24vn000ocyz6hhhhx04z" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-中秋以后" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/09/26/中秋以后/" class="article-date">
+  <time datetime="2018-09-26T14:47:13.000Z" itemprop="datePublished">2018-09-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/09/26/中秋以后/">中秋以后</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这个月有点累，好多事情交错在一起。</p>
+<p>工作上刚进入一个新的领域，且进展不是很顺利，就不过多的吐槽了。码农真的是一个焦虑的职业，每天就是不断的学习，感觉总有学不完的新知识。或许我还没有找到行业的门道吧，我又打算重新理一下基础，只有基础越扎实才能站的更高。</p>
+<p>加油！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/09/26/中秋以后/" data-id="cjxpp24vr000rcyz6wvp8079l" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-iOS逆向开发学习笔记（1）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/08/27/iOS逆向开发学习笔记（1）/" class="article-date">
+  <time datetime="2018-08-27T09:07:35.000Z" itemprop="datePublished">2018-08-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/08/27/iOS逆向开发学习笔记（1）/">iOS逆向开发学习笔记（1）</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近进入到一个新的领域，iOS逆向。哇，听起来好像很高大上的样子呢。这个还是比较有门槛的，前期主要是要学习一些工具。</p>
+<p>前提条件</p>
+<ol>
+<li>虚拟机+win7+爱思助手（越狱软件）</li>
+<li>可越狱的iPhone设备</li>
+<li>thoes框架（可以编写插件代码注入）</li>
+<li>iFunBox (可以copy内容至指定Media文件夹)</li>
+<li>Charles (网络工具)</li>
+<li>Cycript/Reveal 主要用来看页面层级</li>
+<li>老版本的Xcode7.1 执行 xcode-select -s app的路径</li>
+<li>熟练使用linux/unix命令mv, cp, cat, grep, mkdir, rm 等, 使用vim, ssh</li>
+</ol>
+<p>安装<br>Cydia，越狱软件的AppStore。</p>
+<ol>
+<li>Filza</li>
+<li>Substrate Safe Mode</li>
+<li>Dropbear</li>
+<li>Cycript</li>
+<li>ssl-kill-switch2</li>
+</ol>
+<p>Thoes运行一个项目就可以跑起来了。</p>
+<p>还没入门，任重道远。。fight!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/08/27/iOS逆向开发学习笔记（1）/" data-id="cjxpp24vm000ncyz6nm506kpk" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-GPUImage学习笔记（4）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/07/27/GPUImage学习笔记（4）/" class="article-date">
+  <time datetime="2018-07-27T13:21:35.000Z" itemprop="datePublished">2018-07-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/07/27/GPUImage学习笔记（4）/">GPUImage学习笔记（4）</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>GPUImage比我想象的要强大的多。我本想切换到Swift的版本。功力尚未达到，我又切回来了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/07/27/GPUImage学习笔记（4）/" data-id="cjxpp24v00007cyz6ea65q9h1" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-GPUImage学习笔记（3）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/07/05/GPUImage学习笔记（3）/" class="article-date">
+  <time datetime="2018-07-05T03:06:00.000Z" itemprop="datePublished">2018-07-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/07/05/GPUImage学习笔记（3）/">GPUImage学习笔记（3）</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本文记录一下探索GPUImage渲染的过程</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">self.camera = [[GPUImageVideoCamera alloc] initWithSessionPreset:AVCaptureSessionPresetHigh cameraPosition:AVCaptureDevicePositionFront];</span><br><span class="line">self.camera.horizontallyMirrorFrontFacingCamera = YES;</span><br><span class="line">self.camera.outputImageOrientation = UIDeviceOrientationPortrait;</span><br><span class="line">self.filter = [[GPUImageFilter alloc] init];</span><br><span class="line">self.imageView = [[GPUImageView alloc] initWithFrame:[UIScreen mainScreen].bounds];</span><br><span class="line">[self.view addSubview:self.imageView];</span><br><span class="line"></span><br><span class="line">[self.camera addTarget:self.filter];</span><br><span class="line">[self.filter addTarget:self.imageView];</span><br><span class="line"></span><br><span class="line">[self.camera startCameraCapture];</span><br></pre></td></tr></table></figure>
+<p>这是我在使用GPUImage的代码，很简单的完成了使用前置摄像头的任务，但是背后可不简单。</p>
+<p>这里我设置了三个状态<br>position: AVCaptureDevicePositionFront  //这个状态使用了前置摄像头<br>horizontallyMirrorFrontFacingCamera: YES //前置摄像头镜像<br>outputImageOrientation: UIDeviceOrientationPortrait //输出的图像是竖方向的</p>
+<p>videosettings:采样格式被设置为kCVPixelFormatType_420YpCbCr8BiPlanarFullRange===&gt;这种420f视频格式为NV12，Y分量一个plane,UV一起存储。Y1Y2…YN(U0V0)(U1V1)(Un/2Vn/2),UV前后顺序还得再确认下。</p>
+<p>接着就是创建一个shader程序就其转换成RGBA的格式<br>vertex shader是最简单的直通<br>fragment shader就比较复杂了<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">varying highp vec2 textureCoordinate;</span><br><span class="line"></span><br><span class="line">uniform sampler2D luminanceTexture;</span><br><span class="line">uniform sampler2D chrominanceTexture;</span><br><span class="line">uniform mediump mat3 colorConversionMatrix;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    mediump vec3 yuv;</span><br><span class="line">    lowp vec3 rgb;</span><br><span class="line">    </span><br><span class="line">    yuv.x = texture2D(luminanceTexture, textureCoordinate).r;</span><br><span class="line">    yuv.yz = texture2D(chrominanceTexture, textureCoordinate).ra - vec2(<span class="number">0.5</span>, <span class="number">0.5</span>);</span><br><span class="line">    rgb = colorConversionMatrix * yuv;</span><br><span class="line">    </span><br><span class="line">    gl_FragColor = vec4(rgb, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这里除了传递了两个纹理之后，还传递了一个矩阵<br>GLfloat kColorConversion601FullRangeDefault[] = {<br>    1.0,    1.0,    1.0,<br>    0.0,    -0.343, 1.765,<br>    1.4,    -0.711, 0.0,<br>};<br>这个本质上是一个转换公式，将yuv420两个分量的纹理（y）(uv)转换成了rgba的纹理<br>1.0<em>y + 1.0</em>u + 1.0<em>v = r<br>0.0</em>y - 0.343<em>u + 1.765</em>v = g<br>1.4<em>y - 0.711</em>u + 0.0*v = b</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/07/05/GPUImage学习笔记（3）/" data-id="cjxpp24v10008cyz6lautyaih" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-GPUImage学习笔记（2）" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/06/26/GPUImage学习笔记（2）/" class="article-date">
+  <time datetime="2018-06-26T13:04:12.000Z" itemprop="datePublished">2018-06-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/06/26/GPUImage学习笔记（2）/">GPUImage学习笔记（2）</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Source组件"><a href="#Source组件" class="headerlink" title="Source组件"></a>Source组件</h2><p>继承关系<br>GPUImageOutput –&gt; GPUImageVideoCamera –&gt; GPUImageStillCamera<br>               –&gt; GPUImagePicture<br>               –&gt; GPUImageMovie –&gt; GPUImageMovieComposition<br>               –&gt; GPUImageTextureInput<br>               –&gt; GPUImageRawDataInput<br>               –&gt; GPUImageUIElement</p>
+<p>Source组件是数据的来源，依次为摄像头、图片、视频、opengl纹理、二进制数据、UIElement</p>
+<h2 id="内置滤镜"><a href="#内置滤镜" class="headerlink" title="内置滤镜"></a>内置滤镜</h2><p>继承关系<br>GPUImageOutput –&gt; GPUImageFilter –&gt; GPUImageTwoInputFilter –&gt; GPUImageThreeInputFilter –&gt; GPUImageFourInputFilter<br>                                                             –&gt; GPUImageTwoInputCrossTextureSamplingFilter<br>               –&gt; GPUImageTwoPassFilter –&gt; GPUImageTwoPassTextureSamplingFilter<br>               –&gt; GPUImageFilterGroup<br>               –&gt; GPUImage3x3TextureSamplingFilter</p>
+<p>内置滤镜</p>
+<ol>
+<li>颜色处理</li>
+<li>图像处理</li>
+<li>混合</li>
+<li>效果</li>
+</ol>
+<p>这是滤镜的抽象基类，绝大部分滤镜都可以从这里继承，然后写对应的shader程序</p>
+<h2 id="Output组件"><a href="#Output组件" class="headerlink" title="Output组件"></a>Output组件</h2><p>GPUImageView<gpuimageinput><br>GPUImageMovieWriter<gpuimageinput><br>GPUImageTextureOutput<gpuimageinput><br>GPUImageRawDataOutput<gpuimageinput></gpuimageinput></gpuimageinput></gpuimageinput></gpuimageinput></p>
+<p>这是终点，他们都遵循了<gpuimageinput>协议</gpuimageinput></p>
+<h2 id="GLProgram-（创建-编译-链接-使用）"><a href="#GLProgram-（创建-编译-链接-使用）" class="headerlink" title="GLProgram （创建 编译 链接 使用）"></a>GLProgram （创建 编译 链接 使用）</h2><ol>
+<li>创建一个着色器程序，编译顶点和片段着色器，attach到program中去</li>
+<li>链接着色器程序，链接成功后删除顶点和片段着色器，初始化完成</li>
+<li>使用着色器程序，也包括设置和获得attribute和uniform</li>
+</ol>
+<h2 id="GPUImageContext"><a href="#GPUImageContext" class="headerlink" title="GPUImageContext"></a>GPUImageContext</h2><ol>
+<li>初始化绘制串行队列</li>
+<li>当前着色器程序</li>
+<li>初始化OpenGLES上下文</li>
+<li>初始化CoreVideo纹理缓存， CVOpenGLESTextureCacheCreateTextureFromImage的作用是将CVPixelBufferRef转换成texture，其中使用到texturecache需要提前创建好。CVOpenGLESTextureCacheCreate。</li>
+<li>初始化framebuffercache</li>
+<li>提供一个获取program的方法，方法中还缓存program</li>
+</ol>
+<h2 id="GPUImageFramebuffer"><a href="#GPUImageFramebuffer" class="headerlink" title="GPUImageFramebuffer"></a>GPUImageFramebuffer</h2><ol>
+<li>初始化方法,其主要的目的是生成framebuffer和一个绑定的空texture。</li>
+<li>generateFramebuffer，生成framebuffer,与opengl绑定。根据选项生成纹理，与opengl绑定。分配纹理的空间。将其作为framebuffer的附件。</li>
+<li>纹理的生成CVOpenGLESTextureCacheCreateTextureFromImage效率更高。renderTarget是一个空的CVPixelBufferRef<br>(CVPixelBufferRef+CVOpenGLESTextureCacheRef)=&gt;CVOpenGLESTextureRef=&gt;texture</li>
+</ol>
+<h2 id="GPUImageFramebufferCache-管理Framebuffer"><a href="#GPUImageFramebufferCache-管理Framebuffer" class="headerlink" title="GPUImageFramebufferCache 管理Framebuffer"></a>GPUImageFramebufferCache 管理Framebuffer</h2><h2 id="shader程序"><a href="#shader程序" class="headerlink" title="shader程序"></a>shader程序</h2><p>varying highp vec2 textureCoordinate;</p>
+<p>varying 是顶点着色器和片段着色器之间做数据传递使用，一般来说是，顶点着色器修改varying变量值，片段着色器使用这个值。<br>highp 声明了变量的精度（另外还有mediump, lowp）<br>vec2 声明了变量的类型是一个二维变量<br>textureCoordinate 这个变量名是纹理坐标的意思。因为需要在顶点和片段着色器中同时使用，所以是不能更改的。可以理解为当前坐标</p>
+<p>uniform sampler2D inputImageTexture;<br>uniform 表示变量是外部传递进来的shader变量，只能使用不能修改<br>sampler2D 表示是一个2D纹理<br>inputImageTexture 这个变量名表示输入的图像。可以理解为当前图像</p>
+<p>uniform mediump vec3 inputColor;<br>uniform mediump float threshold;<br>这两个是外部传进来的变量,在GPUImage中通过如下代码可以设置传入<br>[positionFilter setFloat:thresholdSensitivity forUniformName:@”threshold”];<br>[positionFilter setFloatVec3:thresholdColor forUniformName:@”inputColor”];</p>
+<p>const mediump vec3 luminanceWeighting = vec3(0.2125, 0.7154, 0.0721);//权重<br>vec4 pixelColor = texture2D(inputImageTexture, textureCoordinate);//取出像素点<br>lowp float luminance = dot(pixelColor.rgb, luminanceWeighting);//点乘，计算中和亮度值<br>lowp vec3 greyScaleColor = vec3(luminance)<br>gl_FragColor 是 Fragment Shader 预先定义的变量，赋给它的值就是该片段最终的颜色值</p>
+<h2 id="基本的shader函数"><a href="#基本的shader函数" class="headerlink" title="基本的shader函数"></a>基本的shader函数</h2><p>mix 线性差值函数<br>函数接口mix(x, y, level);<br>x, y : 输入值<br>level :  插值系数<br>return : 返回插值结果<br>描述 : dest = x <em> (1 - level) + y </em> level;</p>
+<p>clamp 规整输入值<br>函数接口: clamp(x, min, max)<br>x : 输入值<br>min : 最小值<br>max : 最大值<br>return : 根据输入的x，返回介于 min 与 max 之间的值。<br>描述 : 当 x &lt; min时，返回min，当 x &gt; max 时，返回 max</p>
+<p>dot 点乘<br>函数接口: dot(x, y)<br>x, y : 输入变量，必须是向量<br>return : 点积结果<br>描述 : 对于向量a, b，返回的结果是 y = ∑(ai * bi) 乘积之和。</p>
+<h3 id="Vertex-shader"><a href="#Vertex-shader" class="headerlink" title="Vertex shader"></a>Vertex shader</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">attribute vec4 position;//顶点坐标</span><br><span class="line">attribute vec4 inputTextureCoordinate;//传入纹理坐标</span><br><span class="line"></span><br><span class="line">varying vec2 textureCoordinate;//传给frag的坐标</span><br><span class="line"></span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">    gl_Position = position;//预定义变量</span><br><span class="line">    textureCoordinate = inputTextureCoordinate.xy;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 顶点坐标 position 原点在中间<br>        // 屏幕四个顶点<br>        static const GLfloat imageVertices[] = {<br>            -1.0f, -1.0f,<br>            1.0f, -1.0f,<br>            -1.0f,  1.0f,<br>            1.0f,  1.0f,<br>        };<br> 纹理坐标 inputTextureCoordinate 左下角是原点，从左到右、从下到上坐标依次递增。<a href="https://www.jianshu.com/p/e7245b62d2b3" target="_blank" rel="noopener">坐标解释</a></p>
+<h3 id="fragmentShader"><a href="#fragmentShader" class="headerlink" title="fragmentShader"></a>fragmentShader</h3> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"> varying highp vec2 textureCoordinate;</span><br><span class="line"></span><br><span class="line">uniform sampler2D inputImageTexture;</span><br><span class="line"></span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">    gl_FragColor = texture2D(inputImageTexture, textureCoordinate);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">- (void)renderToTextureWithVertices:(const GLfloat *)vertices textureCoordinates:(const GLfloat *)textureCoordinates</span><br><span class="line"> 上面这个是GPUImageFilter的默认方法，大致做了这么几件事情：</span><br><span class="line">1). 向frameBufferCache申请一个outputFrameBuffer</span><br><span class="line">2). 将申请得到的outputFrameBuffer激活并设为渲染对象</span><br><span class="line">3). glClear清除画布</span><br><span class="line">4). 设置输入纹理</span><br><span class="line">5). 传入顶点</span><br><span class="line">6). 传入纹理坐标</span><br><span class="line">7). 调用绘制方法</span><br></pre></td></tr></table></figure>
+<h3 id="GPUImageBrightnessFilter-明亮滤镜"><a href="#GPUImageBrightnessFilter-明亮滤镜" class="headerlink" title="GPUImageBrightnessFilter 明亮滤镜"></a>GPUImageBrightnessFilter 明亮滤镜</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">varying highp vec2 textureCoordinate; //纹理坐标，可以理解为当前处理像素点的坐标</span><br><span class="line"></span><br><span class="line">uniform sampler2D inputImageTexture; // 输入图像的纹理，可以理解为需要处理的图像</span><br><span class="line">uniform lowp float brightness; // 明亮度，-1到1的一个值。</span><br><span class="line"></span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">    lowp vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);//取出输入图像对应坐标 的纹理color</span><br><span class="line">    </span><br><span class="line">    gl_FragColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);//将像素的rgb值，同时加上明亮值，保持原来的w值</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="GPUImageLevelsFilter-色阶滤镜"><a href="#GPUImageLevelsFilter-色阶滤镜" class="headerlink" title="GPUImageLevelsFilter 色阶滤镜"></a>GPUImageLevelsFilter 色阶滤镜</h3> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">#define GammaCorrection(color, gamma)								pow(color, 1.0 / gamma)</span><br><span class="line">#define LevelsControlInputRange(color, minInput, maxInput)				min(max(color - minInput, vec3(0.0)) / (maxInput - minInput), vec3(1.0))</span><br><span class="line">#define LevelsControlInput(color, minInput, gamma, maxInput)				GammaCorrection(LevelsControlInputRange(color, minInput, maxInput), gamma)</span><br><span class="line">#define LevelsControlOutputRange(color, minOutput, maxOutput) 			mix(minOutput, maxOutput, color)</span><br><span class="line">#define LevelsControl(color, minInput, gamma, maxInput, minOutput, maxOutput) 	LevelsControlOutputRange(LevelsControlInput(color, minInput, gamma, maxInput), minOutput, maxOutput)</span><br><span class="line"></span><br><span class="line">NSString *const kGPUImageLevelsFragmentShaderString = SHADER_STRING</span><br><span class="line">(</span><br><span class="line"> varying highp vec2 textureCoordinate;</span><br><span class="line"> </span><br><span class="line"> uniform sampler2D inputImageTexture;</span><br><span class="line"> uniform mediump vec3 levelMinimum;</span><br><span class="line"> uniform mediump vec3 levelMiddle;</span><br><span class="line"> uniform mediump vec3 levelMaximum;</span><br><span class="line"> uniform mediump vec3 minOutput;</span><br><span class="line"> uniform mediump vec3 maxOutput;</span><br><span class="line"> </span><br><span class="line"> void main()</span><br><span class="line"> &#123;</span><br><span class="line">     mediump vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);</span><br><span class="line">     </span><br><span class="line">     gl_FragColor = vec4(LevelsControl(textureColor.rgb, levelMinimum, levelMiddle, levelMaximum, minOutput, maxOutput), textureColor.a);</span><br><span class="line"> &#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<h3 id="GPUImageExposureFilter-曝光度"><a href="#GPUImageExposureFilter-曝光度" class="headerlink" title="GPUImageExposureFilter 曝光度"></a>GPUImageExposureFilter 曝光度</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">varying highp vec2 textureCoordinate;</span><br><span class="line"></span><br><span class="line">uniform sampler2D inputImageTexture;</span><br><span class="line">uniform highp float exposure;</span><br><span class="line"></span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">    highp vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);</span><br><span class="line">    </span><br><span class="line">    gl_FragColor = vec4(textureColor.rgb * pow(2.0, exposure), textureColor.w);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="GPUImageContrastFilter-对比度"><a href="#GPUImageContrastFilter-对比度" class="headerlink" title="GPUImageContrastFilter 对比度"></a>GPUImageContrastFilter 对比度</h3> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> varying highp vec2 textureCoordinate;</span><br><span class="line"></span><br><span class="line">uniform sampler2D inputImageTexture;</span><br><span class="line">uniform lowp float contrast;</span><br><span class="line"></span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">    lowp vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);</span><br><span class="line">    </span><br><span class="line">    gl_FragColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="GPUImageSaturationFilter-饱和度"><a href="#GPUImageSaturationFilter-饱和度" class="headerlink" title="GPUImageSaturationFilter 饱和度"></a>GPUImageSaturationFilter 饱和度</h3> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">  varying highp vec2 textureCoordinate;</span><br><span class="line"> </span><br><span class="line"> uniform sampler2D inputImageTexture;</span><br><span class="line"> uniform lowp float saturation;</span><br><span class="line"> </span><br><span class="line"> // Values from &quot;Graphics Shaders: Theory and Practice&quot; by Bailey and Cunningham</span><br><span class="line"> const mediump vec3 luminanceWeighting = vec3(0.2125, 0.7154, 0.0721);</span><br><span class="line"> </span><br><span class="line"> void main()</span><br><span class="line"> &#123;</span><br><span class="line">    lowp vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);</span><br><span class="line">    lowp float luminance = dot(textureColor.rgb, luminanceWeighting);</span><br><span class="line">    lowp vec3 greyScaleColor = vec3(luminance);</span><br><span class="line">    </span><br><span class="line">	gl_FragColor = vec4(mix(greyScaleColor, textureColor.rgb, saturation), textureColor.w);</span><br><span class="line">	 </span><br><span class="line"> &#125;</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<h3 id="GPUImageGammaFilter-伽马滤镜"><a href="#GPUImageGammaFilter-伽马滤镜" class="headerlink" title="GPUImageGammaFilter 伽马滤镜"></a>GPUImageGammaFilter 伽马滤镜</h3> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">varying highp vec2 textureCoordinate;</span><br><span class="line"></span><br><span class="line">uniform sampler2D inputImageTexture;</span><br><span class="line">uniform lowp float gamma;</span><br><span class="line"></span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">    lowp vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);</span><br><span class="line">    </span><br><span class="line">    gl_FragColor = vec4(pow(textureColor.rgb, vec3(gamma)), textureColor.w);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="GPUImageLookupFilter-查找表滤波"><a href="#GPUImageLookupFilter-查找表滤波" class="headerlink" title="GPUImageLookupFilter 查找表滤波"></a>GPUImageLookupFilter 查找表滤波</h3> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"> NSString *const kGPUImageLookupFragmentShaderString = SHADER_STRING</span><br><span class="line">(</span><br><span class="line"> varying highp vec2 textureCoordinate;  // src图片的像素坐标</span><br><span class="line"> varying highp vec2 textureCoordinate2; // lookup图片的像素坐标，未使用</span><br><span class="line"> </span><br><span class="line"> uniform sampler2D inputImageTexture;   // src图片的纹理信息，相当于图片信息的二维矩阵</span><br><span class="line"> uniform sampler2D inputImageTexture2; // lookup texture</span><br><span class="line"> </span><br><span class="line"> uniform lowp float intensity; // 强度</span><br><span class="line"></span><br><span class="line"> void main()</span><br><span class="line"> &#123;</span><br><span class="line">     highp vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);//根据图片矩阵和坐标，取出一个点的（r,g,b,a）,这里都是归一化的</span><br><span class="line">     </span><br><span class="line">     highp float blueColor = textureColor.b * 63.0;//首先根据b，计算一个（0~63）的值，假设为1.0</span><br><span class="line">     </span><br><span class="line">     highp vec2 quad1;//定义一个二维向量，代码坐标</span><br><span class="line">     quad1.y = floor(floor(blueColor) / 8.0);//floor返回小于或等于指定表达式的最大整数，==&gt;7.0</span><br><span class="line">     quad1.x = floor(blueColor) - (quad1.y * 8.0); //===&gt; 7.0</span><br><span class="line">     </span><br><span class="line">     highp vec2 quad2;</span><br><span class="line">     quad2.y = floor(ceil(blueColor) / 8.0);// ceil返回大于或者等于指定表达式的最小整数 ==&gt;7.0</span><br><span class="line">     quad2.x = ceil(blueColor) - (quad2.y * 8.0);//==&gt; 7.0</span><br><span class="line">     </span><br><span class="line">     highp vec2 texPos1;</span><br><span class="line">     texPos1.x = (quad1.x * 0.125) + 0.5/512.0 + ((0.125 - 1.0/512.0) * textureColor.r);// 计算坐标</span><br><span class="line">     texPos1.y = (quad1.y * 0.125) + 0.5/512.0 + ((0.125 - 1.0/512.0) * textureColor.g);</span><br><span class="line">     </span><br><span class="line">     highp vec2 texPos2;</span><br><span class="line">     texPos2.x = (quad2.x * 0.125) + 0.5/512.0 + ((0.125 - 1.0/512.0) * textureColor.r);</span><br><span class="line">     texPos2.y = (quad2.y * 0.125) + 0.5/512.0 + ((0.125 - 1.0/512.0) * textureColor.g);</span><br><span class="line">     </span><br><span class="line">     lowp vec4 newColor1 = texture2D(inputImageTexture2, texPos1);</span><br><span class="line">     lowp vec4 newColor2 = texture2D(inputImageTexture2, texPos2);</span><br><span class="line">     </span><br><span class="line">     lowp vec4 newColor = mix(newColor1, newColor2, fract(blueColor));  //fract返回小数部分</span><br><span class="line">     gl_FragColor = mix(textureColor, vec4(newColor.rgb, textureColor.w), intensity);   //mix 根据强度混合</span><br><span class="line"> &#125;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">mix 线性差值函数</span><br><span class="line">函数接口mix(x, y, level);</span><br><span class="line">x, y : 输入值</span><br><span class="line">level :  插值系数</span><br><span class="line">return : 返回插值结果</span><br><span class="line">描述 : dest = x * (1 - level) + y * level;</span><br></pre></td></tr></table></figure>
+<p> ###内置滤镜<br> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br></pre></td><td class="code"><pre><span class="line">#import &quot;GPUImageBrightnessFilter.h&quot;                //亮度</span><br><span class="line">#import &quot;GPUImageExposureFilter.h&quot;                  //曝光</span><br><span class="line">#import &quot;GPUImageContrastFilter.h&quot;                  //对比度</span><br><span class="line">#import &quot;GPUImageSaturationFilter.h&quot;                //饱和度</span><br><span class="line">#import &quot;GPUImageGammaFilter.h&quot;                     //伽马线</span><br><span class="line">#import &quot;GPUImageColorInvertFilter.h&quot;               //反色</span><br><span class="line">#import &quot;GPUImageSepiaFilter.h&quot;                     //褐色（怀旧）</span><br><span class="line">#import &quot;GPUImageLevelsFilter.h&quot;                    //色阶</span><br><span class="line">#import &quot;GPUImageGrayscaleFilter.h&quot;                 //灰度</span><br><span class="line">#import &quot;GPUImageHistogramFilter.h&quot;                 //色彩直方图，显示在图片上</span><br><span class="line">#import &quot;GPUImageHistogramGenerator.h&quot;              //色彩直方图</span><br><span class="line">#import &quot;GPUImageRGBFilter.h&quot;                       //RGB</span><br><span class="line">#import &quot;GPUImageToneCurveFilter.h&quot;                 //色调曲线</span><br><span class="line">#import &quot;GPUImageMonochromeFilter.h&quot;                //单色</span><br><span class="line">#import &quot;GPUImageOpacityFilter.h&quot;                   //不透明度</span><br><span class="line">#import &quot;GPUImageHighlightShadowFilter.h&quot;           //提亮阴影</span><br><span class="line">#import &quot;GPUImageFalseColorFilter.h&quot;                //色彩替换（替换亮部和暗部色彩）</span><br><span class="line">#import &quot;GPUImageHueFilter.h&quot;                       //色度</span><br><span class="line">#import &quot;GPUImageChromaKeyFilter.h&quot;                 //色度键</span><br><span class="line">#import &quot;GPUImageWhiteBalanceFilter.h&quot;              //白平横</span><br><span class="line">#import &quot;GPUImageAverageColor.h&quot;                    //像素平均色值</span><br><span class="line">#import &quot;GPUImageSolidColorGenerator.h&quot;             //纯色</span><br><span class="line">#import &quot;GPUImageLuminosity.h&quot;                      //亮度平均</span><br><span class="line">#import &quot;GPUImageAverageLuminanceThresholdFilter.h&quot; //像素色值亮度平均，图像黑白（有类似漫画效果）</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageLookupFilter.h&quot;                    //lookup 色彩调整</span><br><span class="line">#import &quot;GPUImageAmatorkaFilter.h&quot;                  //Amatorka lookup</span><br><span class="line">#import &quot;GPUImageMissEtikateFilter.h&quot;               //MissEtikate lookup</span><br><span class="line">#import &quot;GPUImageSoftEleganceFilter.h&quot;              //SoftElegance lookup</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#pragma mark - 图像处理 Handle Image</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageCrosshairGenerator.h&quot;              //十字</span><br><span class="line">#import &quot;GPUImageLineGenerator.h&quot;                   //线条</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageTransformFilter.h&quot;                 //形状变化</span><br><span class="line">#import &quot;GPUImageCropFilter.h&quot;                      //剪裁</span><br><span class="line">#import &quot;GPUImageSharpenFilter.h&quot;                   //锐化</span><br><span class="line">#import &quot;GPUImageUnsharpMaskFilter.h&quot;               //反遮罩锐化</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageFastBlurFilter.h&quot;                  //模糊</span><br><span class="line">#import &quot;GPUImageGaussianBlurFilter.h&quot;              //高斯模糊</span><br><span class="line">#import &quot;GPUImageGaussianSelectiveBlurFilter.h&quot;     //高斯模糊，选择部分清晰</span><br><span class="line">#import &quot;GPUImageBoxBlurFilter.h&quot;                   //盒状模糊</span><br><span class="line">#import &quot;GPUImageTiltShiftFilter.h&quot;                 //条纹模糊，中间清晰，上下两端模糊</span><br><span class="line">#import &quot;GPUImageMedianFilter.h&quot;                    //中间值，有种稍微模糊边缘的效果</span><br><span class="line">#import &quot;GPUImageBilateralFilter.h&quot;                 //双边模糊</span><br><span class="line">#import &quot;GPUImageErosionFilter.h&quot;                   //侵蚀边缘模糊，变黑白</span><br><span class="line">#import &quot;GPUImageRGBErosionFilter.h&quot;                //RGB侵蚀边缘模糊，有色彩</span><br><span class="line">#import &quot;GPUImageDilationFilter.h&quot;                  //扩展边缘模糊，变黑白</span><br><span class="line">#import &quot;GPUImageRGBDilationFilter.h&quot;               //RGB扩展边缘模糊，有色彩</span><br><span class="line">#import &quot;GPUImageOpeningFilter.h&quot;                   //黑白色调模糊</span><br><span class="line">#import &quot;GPUImageRGBOpeningFilter.h&quot;                //彩色模糊</span><br><span class="line">#import &quot;GPUImageClosingFilter.h&quot;                   //黑白色调模糊，暗色会被提亮</span><br><span class="line">#import &quot;GPUImageRGBClosingFilter.h&quot;                //彩色模糊，暗色会被提亮</span><br><span class="line">#import &quot;GPUImageLanczosResamplingFilter.h&quot;         //Lanczos重取样，模糊效果</span><br><span class="line">#import &quot;GPUImageNonMaximumSuppressionFilter.h&quot;     //非最大抑制，只显示亮度最高的像素，其他为黑</span><br><span class="line">#import &quot;GPUImageThresholdedNonMaximumSuppressionFilter.h&quot; //与上相比，像素丢失更多</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageSobelEdgeDetectionFilter.h&quot;        //Sobel边缘检测算法(白边，黑内容，有点漫画的反色效果)</span><br><span class="line">#import &quot;GPUImageCannyEdgeDetectionFilter.h&quot;        //Canny边缘检测算法（比上更强烈的黑白对比度）</span><br><span class="line">#import &quot;GPUImageThresholdEdgeDetectionFilter.h&quot;    //阈值边缘检测（效果与上差别不大）</span><br><span class="line">#import &quot;GPUImagePrewittEdgeDetectionFilter.h&quot;      //普瑞维特(Prewitt)边缘检测(效果与Sobel差不多，貌似更平滑)</span><br><span class="line">#import &quot;GPUImageXYDerivativeFilter.h&quot;              //XYDerivative边缘检测，画面以蓝色为主，绿色为边缘，带彩色</span><br><span class="line">#import &quot;GPUImageHarrisCornerDetectionFilter.h&quot;     //Harris角点检测，会有绿色小十字显示在图片角点处</span><br><span class="line">#import &quot;GPUImageNobleCornerDetectionFilter.h&quot;      //Noble角点检测，检测点更多</span><br><span class="line">#import &quot;GPUImageShiTomasiFeatureDetectionFilter.h&quot; //ShiTomasi角点检测，与上差别不大</span><br><span class="line">#import &quot;GPUImageMotionDetector.h&quot;                  //动作检测</span><br><span class="line">#import &quot;GPUImageHoughTransformLineDetector.h&quot;      //线条检测</span><br><span class="line">#import &quot;GPUImageParallelCoordinateLineTransformFilter.h&quot; //平行线检测</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageLocalBinaryPatternFilter.h&quot;        //图像黑白化，并有大量噪点</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageLowPassFilter.h&quot;                   //用于图像加亮</span><br><span class="line">#import &quot;GPUImageHighPassFilter.h&quot;                  //图像低于某值时显示为黑</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#pragma mark - 视觉效果 Visual Effect</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageSketchFilter.h&quot;                    //素描</span><br><span class="line">#import &quot;GPUImageThresholdSketchFilter.h&quot;           //阀值素描，形成有噪点的素描</span><br><span class="line">#import &quot;GPUImageToonFilter.h&quot;                      //卡通效果（黑色粗线描边）</span><br><span class="line">#import &quot;GPUImageSmoothToonFilter.h&quot;                //相比上面的效果更细腻，上面是粗旷的画风</span><br><span class="line">#import &quot;GPUImageKuwaharaFilter.h&quot;                  //桑原(Kuwahara)滤波,水粉画的模糊效果；处理时间比较长，慎用</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageMosaicFilter.h&quot;                    //黑白马赛克</span><br><span class="line">#import &quot;GPUImagePixellateFilter.h&quot;                 //像素化</span><br><span class="line">#import &quot;GPUImagePolarPixellateFilter.h&quot;            //同心圆像素化</span><br><span class="line">#import &quot;GPUImageCrosshatchFilter.h&quot;                //交叉线阴影，形成黑白网状画面</span><br><span class="line">#import &quot;GPUImageColorPackingFilter.h&quot;              //色彩丢失，模糊（类似监控摄像效果）</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageVignetteFilter.h&quot;                  //晕影，形成黑色圆形边缘，突出中间图像的效果</span><br><span class="line">#import &quot;GPUImageSwirlFilter.h&quot;                     //漩涡，中间形成卷曲的画面</span><br><span class="line">#import &quot;GPUImageBulgeDistortionFilter.h&quot;           //凸起失真，鱼眼效果</span><br><span class="line">#import &quot;GPUImagePinchDistortionFilter.h&quot;           //收缩失真，凹面镜</span><br><span class="line">#import &quot;GPUImageStretchDistortionFilter.h&quot;         //伸展失真，哈哈镜</span><br><span class="line">#import &quot;GPUImageGlassSphereFilter.h&quot;               //水晶球效果</span><br><span class="line">#import &quot;GPUImageSphereRefractionFilter.h&quot;          //球形折射，图形倒立</span><br><span class="line">    </span><br><span class="line">#import &quot;GPUImagePosterizeFilter.h&quot;                 //色调分离，形成噪点效果</span><br><span class="line">#import &quot;GPUImageCGAColorspaceFilter.h&quot;             //CGA色彩滤镜，形成黑、浅蓝、紫色块的画面</span><br><span class="line">#import &quot;GPUImagePerlinNoiseFilter.h&quot;               //柏林噪点，花边噪点</span><br><span class="line">#import &quot;GPUImage3x3ConvolutionFilter.h&quot;            //3x3卷积，高亮大色块变黑，加亮边缘、线条等</span><br><span class="line">#import &quot;GPUImageEmbossFilter.h&quot;                    //浮雕效果，带有点3d的感觉</span><br><span class="line">#import &quot;GPUImagePolkaDotFilter.h&quot;                  //像素圆点花样</span><br><span class="line">#import &quot;GPUImageHalftoneFilter.h&quot;                  //点染,图像黑白化，由黑点构成原图的大致图形</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#pragma mark - 混合模式 Blend</span><br><span class="line"></span><br><span class="line">#import &quot;GPUImageMultiplyBlendFilter.h&quot;             //通常用于创建阴影和深度效果</span><br><span class="line">#import &quot;GPUImageNormalBlendFilter.h&quot;               //正常</span><br><span class="line">#import &quot;GPUImageAlphaBlendFilter.h&quot;                //透明混合,通常用于在背景上应用前景的透明度</span><br><span class="line">#import &quot;GPUImageDissolveBlendFilter.h&quot;             //溶解</span><br><span class="line">#import &quot;GPUImageOverlayBlendFilter.h&quot;              //叠加,通常用于创建阴影效果</span><br><span class="line">#import &quot;GPUImageDarkenBlendFilter.h&quot;               //加深混合,通常用于重叠类型</span><br><span class="line">#import &quot;GPUImageLightenBlendFilter.h&quot;              //减淡混合,通常用于重叠类型</span><br><span class="line">#import &quot;GPUImageSourceOverBlendFilter.h&quot;           //源混合</span><br><span class="line">#import &quot;GPUImageColorBurnBlendFilter.h&quot;            //色彩加深混合</span><br><span class="line">#import &quot;GPUImageColorDodgeBlendFilter.h&quot;           //色彩减淡混合</span><br><span class="line">#import &quot;GPUImageScreenBlendFilter.h&quot;               //屏幕包裹,通常用于创建亮点和镜头眩光</span><br><span class="line">#import &quot;GPUImageExclusionBlendFilter.h&quot;            //排除混合</span><br><span class="line">#import &quot;GPUImageDifferenceBlendFilter.h&quot;           //差异混合,通常用于创建更多变动的颜色</span><br><span class="line">#import &quot;GPUImageSubtractBlendFilter.h&quot;             //差值混合,通常用于创建两个图像之间的动画变暗模糊效果</span><br><span class="line">#import &quot;GPUImageHardLightBlendFilter.h&quot;            //强光混合,通常用于创建阴影效果</span><br><span class="line">#import &quot;GPUImageSoftLightBlendFilter.h&quot;            //柔光混合</span><br><span class="line">#import &quot;GPUImageChromaKeyBlendFilter.h&quot;            //色度键混合</span><br><span class="line">#import &quot;GPUImageMaskFilter.h&quot;                      //遮罩混合</span><br><span class="line">#import &quot;GPUImageHazeFilter.h&quot;                      //朦胧加暗</span><br><span class="line">#import &quot;GPUImageLuminanceThresholdFilter.h&quot;        //亮度阈</span><br><span class="line">#import &quot;GPUImageAdaptiveThresholdFilter.h&quot;         //自适应阈值</span><br><span class="line">#import &quot;GPUImageAddBlendFilter.h&quot;                  //通常用于创建两个图像之间的动画变亮模糊效果</span><br><span class="line">#import &quot;GPUImageDivideBlendFilter.h&quot;               //通常用于创建两个图像之间的动画变暗模糊效果</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#pragma mark - 尚不清楚</span><br><span class="line">#import &quot;GPUImageJFAVoroniFilter.h&quot;</span><br><span class="line">#import &quot;GPUImageVoroniConsumerFilter.h&quot;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/06/26/GPUImage学习笔记（2）/" data-id="cjxpp24wd000xcyz6c6x8n92c" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/">__('next') &raquo;</a>
+  </nav>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

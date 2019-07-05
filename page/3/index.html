@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Destiny">
+<meta property="og:url" content="http://yoursite.com/page/3/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Destiny">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-AFNetworking学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/27/AFNetworking学习笔记/" class="article-date">
+  <time datetime="2018-02-27T01:17:31.000Z" itemprop="datePublished">2018-02-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/27/AFNetworking学习笔记/">AFNetworking学习笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本文是基于<a href="https://github.com/AFNetworking/AFNetworking/tree/3.2.0" target="_blank" rel="noopener">AFNetworking</a>v3.2.0</p>
+<p>AFNetworking3.0以后去除了关于NSURLConnect的内容，都是基于NSURLSession去实现的，提供了AFURLSessionManager和AFHTTPSessionManager两个外部使用的Manager。提供了AFURLRequestSerialization和AFURLResponseSerialization，请求序列化和响应序列化的类。另外还有AFSecurityPolicy和AFNetworkReachabilityManager网络状态。</p>
+<h2 id="AFHTTPSessionManager"><a href="#AFHTTPSessionManager" class="headerlink" title="AFHTTPSessionManager"></a>AFHTTPSessionManager</h2><p>首先从离我们最近的这个聊起吧。它继承自AFURLSessionManager。并且实现了两个协议&lt;NSSecureCoding, NSCopying&gt;。</p>
+<h3 id="四个属性"><a href="#四个属性" class="headerlink" title="四个属性"></a>四个属性</h3><p>baseURL<br>requestSerializer<br>responseSerializer<br>securityPolicy</p>
+<p>baseURL本身没有什么好说的<br>但是注意到为什么在h文件中<br>@property (readonly, nonatomic, strong, nullable) NSURL <em>baseURL;<br>在m文件中却又再写一次呢，居然不报错，为什么这么写呢，从修饰关键字可以看出，是为了对外只读，对内读写。怎么说呢，感觉比在很中间直接写一个get方法优雅一些，毕竟包含更多的信息量。<br>@property (readwrite, nonatomic, strong) NSURL </em>baseURL;</p>
+<p>requestSerializer 默认为AFHTTPRequestSerializer</p>
+<p>responseSerializer 默认为AFJSONResponseSerializer </p>
+<p>@dynamic responseSerializer;<br>@dynamic securityPolicy;<br>这里稍微注意一下@dynamic关键字 参数responseSerializer的getter和setter方法并不在此处，而在其他地方实现了或者生成了，当你程序运行的时候你就知道了，所以别警告我了</p>
+<h3 id="三个初始化方法"><a href="#三个初始化方法" class="headerlink" title="三个初始化方法"></a>三个初始化方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)manager;</span><br><span class="line">- (instancetype)initWithBaseURL:(nullable NSURL *)url;</span><br><span class="line">- (instancetype)initWithBaseURL:(nullable NSURL *)url sessionConfiguration:(nullable NSURLSessionConfiguration *)configuration NS_DESIGNATED_INITIALIZER;</span><br></pre></td></tr></table></figure>
+<p>前几个方法，最终都是调用了最后一个NS_DESIGNATED_INITIALIZER，关于designated_initializer在OC中不太常见，在Swift的文档中有详细的说明，我截取一部分</p>
+<blockquote>
+<p>Designated initializers are the primary initializers for a class. A designated initializer fully initializes all properties introduced by that class and calls an appropriate superclass initializer to continue the initialization process up the superclass chain.</p>
+<p>Classes tend to have very few designated initializers, and it is quite common for a class to have only one. Designated initializers are “funnel” points through which initialization takes place, and through which the initialization process continues up the superclass chain.</p>
+<p>Every class must have at least one designated initializer. In some cases, this requirement is satisfied by inheriting one or more designated initializers from a superclass, as described in Automatic Initializer Inheritance below.</p>
+<p>Convenience initializers are secondary, supporting initializers for a class. You can define a convenience initializer to call a designated initializer from the same class as the convenience initializer with some of the designated initializer’s parameters set to default values. You can also define a convenience initializer to create an instance of that class for a specific use case or input value type.</p>
+<p>You do not have to provide convenience initializers if your class does not require them. Create convenience initializers whenever a shortcut to a common initialization pattern will save time or make initialization of the class clearer in intent.</p>
+</blockquote>
+<p>大意就是指定初始化方法是一个类的首要初始化方法，每个类至少有一个正常请求也只有一个，与之对应的便利初始化方法是次要初始化方法，可以有多个。指定初始化方法需要初始化类所有属性，并调用一个合理的父类的初始化方法去完成继承链上的初始化任务。便利初始化方法可以调用类的指定初始化方法，并把一些指定初始化方法的参数设置为默认。它是创建实例的一个快捷方式，使得初始化意图更清晰。</p>
+<h3 id="一堆HTTP的方法"><a href="#一堆HTTP的方法" class="headerlink" title="一堆HTTP的方法"></a>一堆HTTP的方法</h3><p>GET, HEAD, POST, PUT, PATCH, DELETE方法<br>这里除了正确的使用对应的http方法之外。有一个tip，方法都返回了一个NSURLSessionDataTask对象。我觉得这个对象的主要作用在于管理已发出的请求，更具体一点，比如我在连续发送请求的时候可以取消上一次的请求，只发送本次请求。如何取消呢？就是task的cancel方法了。</p>
+<p>这些方法中绝大部分最终都调用了dataTaskWithHTTPMethod方法。<br>此方法先是使用requestSerializer，创建出一个NSMutableURLRequest对象<br>通过dataTaskWithRequest创建dataTask对象，其中__block 修饰的dataTask对象<br>调用resume方法</p>
+<h2 id="AFURLSessionManager"><a href="#AFURLSessionManager" class="headerlink" title="AFURLSessionManager"></a>AFURLSessionManager</h2><h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><p>session 被管理的NSURLSession对象<br>operationQueue Session发送请求所在的队列<br>securityPolicy 安全策略<br>reachabilityManager 网络监控器<br>responseSerializer 响应序列化器</p>
+<p>tasks<br>dataTasks<br>uploadTasks<br>downloadTasks<br>这四个为计算属性，本身没什么好说的，但是看源码看到一个知识点。这是GCD中信号量的使用。<br>dispatch_semaphore_create 创建一个信号计数。<br>dispatch_semaphore_signal 发出一个信号使得计数+1。<br>dispatch_semaphore_wait 当信号总量少于0的时候就会一直等待，否则就可以正常的执行，并让信号总量-1。<br>下面的代码组合便可以等一个异步操作完成再执行之后代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);</span><br><span class="line">dispatch_semaphore_signal(semaphore);</span><br><span class="line">dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);</span><br></pre></td></tr></table></figure>
+<p>completionQueue 完成队列，默认为主队列。<br>completionGroup 使用dispatch_group_async用来异步派发执行completionHandler回调是为了<br>留给调用者使用dispatch_group_notify等函数有机会监听completionHandler执行完成后的回调</p>
+<p>attemptsToRecreateUploadTasksForBackgroundSessions, 如果创建uploadTask失败就重试3次</p>
+<h3 id="初始化方法"><a href="#初始化方法" class="headerlink" title="初始化方法"></a>初始化方法</h3><ul>
+<li>(instancetype)initWithSessionConfiguration:(nullable NSURLSessionConfiguration *)configuration NS_DESIGNATED_INITIALIZER;</li>
+</ul>
+<p>初始化 configuration，operationQueue, session, responseSerializer等一堆</p>
+<p>其实每一个task对应一个AFURLSessionManagerTaskDelegate，用task的identifier作为key,将其存在一个NSMutableDictionary中。在这个Delegate中处理各自的请求</p>
+<h3 id="主要是发送请求的一堆方法"><a href="#主要是发送请求的一堆方法" class="headerlink" title="主要是发送请求的一堆方法"></a>主要是发送请求的一堆方法</h3><p>dataTaskWithRequest<br>upload<br>download</p>
+<p>设置各种block的</p>
+<h2 id="AFSecurityPolicy"><a href="#AFSecurityPolicy" class="headerlink" title="AFSecurityPolicy"></a>AFSecurityPolicy</h2><p>用于验证HTTPS请求的证书，CA机构颁发证书比较昂贵，SSLPinningMode为证书绑定，是指客户端直接保存服务端的证书，建立https连接时直接对比服务端返回的和客户端保存的两个证书是否一样，一样就表明证书是真的，不再去系统的信任证书机构里寻找验证。</p>
+<p><strong>公钥私钥加密，公钥加密私钥解密，私钥签名公钥验证。</strong></p>
+<h3 id="四个属性-1"><a href="#四个属性-1" class="headerlink" title="四个属性"></a>四个属性</h3><p>SSLPinningMode，AFSSLPinningModeNone只在系统信任机构列表里验证服务端返回的证书。AFSSLPinningModeCertificate验证域名有效期，在验证公钥。AFSSLPinningModePublicKey验证公钥。<br>pinnedCertificates 附属的证书<br>allowInvalidCertificates 允许非权威机构颁发证书的 默认NO<br>validatesDomainName 验证域名 默认YES</p>
+<h3 id="三个初始化方法-1"><a href="#三个初始化方法-1" class="headerlink" title="三个初始化方法"></a>三个初始化方法</h3><ul>
+<li>(instancetype)defaultPolicy;</li>
+<li>(instancetype)policyWithPinningMode:(AFSSLPinningMode)pinningMode;</li>
+<li>(instancetype)policyWithPinningMode:(AFSSLPinningMode)pinningMode withPinnedCertificates:(NSSet <nsdata *=""> *)pinnedCertificates;</nsdata></li>
+</ul>
+<h3 id="两个方法"><a href="#两个方法" class="headerlink" title="两个方法"></a>两个方法</h3><ul>
+<li>(NSSet <nsdata *=""> <em>)certificatesInBundle:(NSBundle </em>)bundle;</nsdata></li>
+</ul>
+<ul>
+<li>(BOOL)evaluateServerTrust:(SecTrustRef)serverTrust forDomain:(nullable NSString *)domain;</li>
+</ul>
+<p>这里主要来着最后一个方法，这个方法传入一个ServerTrust，和一个domain, 返回一个BOOL标识是否信任<br>首先是一个矛盾，也就是说校验自签名的域名必须使用pinning mode<br>如果需要验证域名，则增加一个域名SSL策略，不需要则加一个基础的BasicX509策略<br>SecTrustSetPolicies 为Trust设置策略<br>如果Mode为AFSSLPinningModeNone，允许不合法证书直接按返回YES, 在系统的信任机构列表中验证是否合法。<br>如果是Mode非NONE情况，不允许自签名证书，而又验证系统信任机构列表不通过的，直接返回NO;</p>
+<p>AFSSLPinningModeCertificate<br>先验证证书是否ok，在验证本地证书是否一致</p>
+<p>AFSSLPinningModePublicKey<br>验证公钥是否一致即可，不验证证书</p>
+<h2 id="AFNetworkReachabilityManager"><a href="#AFNetworkReachabilityManager" class="headerlink" title="AFNetworkReachabilityManager"></a>AFNetworkReachabilityManager</h2><h3 id="属性-1"><a href="#属性-1" class="headerlink" title="属性"></a>属性</h3><p>networkReachabilityStatus<br>reachable<br>reachableViaWWAN<br>reachableViaWiFi</p>
+<p>这几个属性本质都是第一个属性的计算属性而已。</p>
+<h3 id="初始化方法-1"><a href="#初始化方法-1" class="headerlink" title="初始化方法"></a>初始化方法</h3><ul>
+<li>(instancetype)sharedManager;</li>
+<li>(instancetype)manager;</li>
+<li>(instancetype)managerForDomain:(NSString *)domain;</li>
+<li>(instancetype)managerForAddress:(const void *)address;</li>
+</ul>
+<ul>
+<li>(instancetype)initWithReachability:(SCNetworkReachabilityRef)reachability NS_DESIGNATED_INITIALIZER;</li>
+<li>(nullable instancetype)init NS_UNAVAILABLE;</li>
+</ul>
+<p>本质上都是获得一个reachability，内部持有（因为是corefoundation的内容所以手动管理内存），维护一个status的状态。</p>
+<h3 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h3><ul>
+<li>(void)startMonitoring;</li>
+<li>(void)stopMonitoring;</li>
+<li>(NSString *)localizedNetworkReachabilityStatusString;</li>
+<li>(void)setReachabilityStatusChangeBlock:(nullable void (^)(AFNetworkReachabilityStatus status))block;</li>
+</ul>
+<p>最终是调用SystemConfiguration中SCNetworkReachabilityScheduleWithRunLoop来完成监听。</p>
+<h3 id="通知"><a href="#通知" class="headerlink" title="通知"></a>通知</h3><p>FOUNDATION_EXPORT NSString * const AFNetworkingReachabilityDidChangeNotification;</p>
+<h2 id="AFURLRequestSerialization-协议"><a href="#AFURLRequestSerialization-协议" class="headerlink" title="AFURLRequestSerialization 协议"></a>AFURLRequestSerialization 协议</h2><h3 id="AFHTTPRequestSerializer"><a href="#AFHTTPRequestSerializer" class="headerlink" title="AFHTTPRequestSerializer"></a>AFHTTPRequestSerializer</h3><h3 id="AFPropertyListRequestSerializer"><a href="#AFPropertyListRequestSerializer" class="headerlink" title="AFPropertyListRequestSerializer"></a>AFPropertyListRequestSerializer</h3><p>正常情况下只是调用了这一个方法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (NSMutableURLRequest *)requestWithMethod:(NSString *)method</span><br><span class="line">                                 URLString:(NSString *)URLString</span><br><span class="line">                                parameters:(id)parameters</span><br><span class="line">                                     error:(NSError *__autoreleasing *)error</span><br></pre></td></tr></table></figure></p>
+<p>第一步 参数检查，根据URLString生成request, 设置request对应的HTTPMethod<br>第二步 将不为空的属性值添加到request对象中去。<br>为了避免重复创建对象，使用一个静态数组保存需要KVO的KeyPath AFHTTPRequestSerializerObservedKeyPaths(), 在init中遍历添加观察者。<br>这里有一个小Tips就是添加KVO时候的context, 这个context用来判断相等。这里使用一个集合来存储值不为null的keypath, 为空则从集合中移除。<br>第三步 根据parameters继续生成request, 这里实现了这个协议的JSON或者Plist各自实现。这里我分析使用较多的JSON</p>
+<h3 id="AFJSONRequestSerializer"><a href="#AFJSONRequestSerializer" class="headerlink" title="AFJSONRequestSerializer"></a>AFJSONRequestSerializer</h3><p>第四步 如何请求是GET HEAD DELETE 则是将参数拼接到URI后面的，调用父类的方法，设置header。这里setHeader和valueForHeader的读取都使用了多线程的技术。在一个并发队列中使用dispatch_barrier_async, dispatch_sync保证了读写的线程安全。<br>如果之前的request中没有这个header就设置这个默认的header。<br>如果存在自定义的请求参数序列化回调则使用自定义，不存在则使用默认的，将parameters拆成x=y&amp;q=e的形式拼接到URL之后。<br>第五步 如果请求是别的方法 则是校验Content-Type和params是否是json，转成data, 放置到HTTPBody中去。</p>
+<h3 id="AFQueryStringPair"><a href="#AFQueryStringPair" class="headerlink" title="AFQueryStringPair"></a>AFQueryStringPair</h3><p>这个类用来实现url请求？后面的参数对类似”?pageNum=1&amp;pageSize=20”<br>AFPercentEscapedStringFromString方法的目的就是转义特殊字符</p>
+<h2 id="AFURLResponseSerialization-协议"><a href="#AFURLResponseSerialization-协议" class="headerlink" title="AFURLResponseSerialization 协议"></a>AFURLResponseSerialization 协议</h2><p>正常情况下响应也是仅仅走这个方法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- (id)responseObjectForResponse:(NSURLResponse *)response</span><br><span class="line">                           data:(NSData *)data</span><br><span class="line">                          error:(NSError *__autoreleasing *)error</span><br></pre></td></tr></table></figure></p>
+<p>第一步 参数检查, 合法响应校验，检查类型，检查MIMEType，检查状态码100~200<br>第二步 判断响应data是不是空或者空格<br>第三步 解析json<br>第四步 根据参数是否移除json中的null，用一个递归来实现，其中NSJSONReadingMutableContainers 生成mutableArray 和 mutableDictionary</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/02/27/AFNetworking学习笔记/" data-id="cjxpp24w1000vcyz62tq0wp0r" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-类似股票数据表格效果" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/10/27/类似股票数据表格效果/" class="article-date">
+  <time datetime="2017-10-27T05:57:07.000Z" itemprop="datePublished">2017-10-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/10/27/类似股票数据表格效果/">类似股票数据表格效果</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="总结一下做一个备忘"><a href="#总结一下做一个备忘" class="headerlink" title="总结一下做一个备忘~~"></a>总结一下做一个备忘~~</h2><p>详细的需求参见同花顺等股票app，或者有技术统计的app。左侧一栏固定，右侧大量数据可以横划，上面header可悬浮，可上下拉刷新。</p>
+<h2 id="一开始的思路"><a href="#一开始的思路" class="headerlink" title="一开始的思路"></a>一开始的思路</h2><p>我的第一感觉是左右侧有个tableview,右侧tableview放置在scrollview上可以完成横划效果。但是刷新不好处理，手势也较多。header悬浮也不好处理</p>
+<h2 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h2><p>考虑到header和刷新，我想是否可以通过一个tableView来实现？<br>顺着这个思路，那么每一行都是一个cell, 左侧可以是固定的label, 右侧则可以是一个collectionView。于是这里就有多个collectionView加在cell上的。<br>滚动了一个cell中的collectionview如何通知别的cell中呢？明显这是个1对多的问题，没错，就是通知。在didScroll中发通知是没错的。但是一旦滚动起来每个cell都在发通知肯定是不对的。所以最好是你滚动的那一个cell发通知，其他cell接受通知。这里我用一个flag属性来记录，我曾想过监听collectionview的contentOffset变化，然后发通知,但是效果不是很好，主要就是这个flag不好设置。最后我找到两个代理方法。<br><code>func scrollViewWillBeginDragging(_ scrollView: UIScrollView)</code>这个方法是手开始滑动触发<br><code>func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)</code>这个方法是减速停止触发（因为手离开后，会有一个减速过程，contentoffset还是会变化）<br>我们真正关心的是我们滑动的那个cell中的collectionView的contentOffset的变化，不是吗?kvo无法判断是不是主动滑动的cell,会导致太多的cell在发通知。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">private var flag = false</span><br><span class="line"></span><br><span class="line">override func awakeFromNib() &#123;</span><br><span class="line">    super.awakeFromNib()</span><br><span class="line">    NotificationCenter.default.addObserver(self, selector: #selector(offsetChange(_:)), name: NSNotification.Name.offsetChange, object: nil)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@objc func offsetChange(_ notification: Notification)&#123;</span><br><span class="line">    if let object = notification.object as? CustomTableViewCell, object === self &#123;</span><br><span class="line">        return</span><br><span class="line">    &#125;</span><br><span class="line">    if let object = notification.object as? CustomHeaderView, object === self &#123;</span><br><span class="line">        return</span><br><span class="line">    &#125;</span><br><span class="line">    collectionView.setContentOffset(notification.userInfo![&quot;offset&quot;] as! CGPoint, animated: false)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func scrollViewWillBeginDragging(_ scrollView: UIScrollView) &#123;</span><br><span class="line">    self.flag = true</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) &#123;</span><br><span class="line">    self.flag = false</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func scrollViewDidScroll(_ scrollView: UIScrollView) &#123;</span><br><span class="line">    if self.flag &#123;</span><br><span class="line">        NotificationCenter.default.post(name: NSNotification.Name.offsetChange, object: self, userInfo: [&quot;offset&quot;: scrollView.contentOffset])</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/10/27/类似股票数据表格效果/" data-id="cjxpp24vu000tcyz64s5vlxcr" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-OC之事件传递响应链" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/10/12/OC之事件传递响应链/" class="article-date">
+  <time datetime="2017-10-12T07:19:41.000Z" itemprop="datePublished">2017-10-12</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/10/12/OC之事件传递响应链/">OC之事件传递响应链</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="hitTest"><a href="#hitTest" class="headerlink" title="hitTest"></a>hitTest</h2><p>这里yy了一下系统默认的实现。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event &#123;</span><br><span class="line">    if (!self.isUserInteractionEnabled || self.isHidden || self.alpha &lt;= 0.01) &#123;</span><br><span class="line">        return nil;</span><br><span class="line">    &#125;</span><br><span class="line">    if ([self pointInside:point withEvent:event]) &#123; // 内部会调用pointInside方法</span><br><span class="line">        for (UIView *subview in [self.subviews reverseObjectEnumerator]) &#123;// 反向遍历，这样即使重叠也会优先处理，找到第一个hitTest的子视图，找不到就是自身</span><br><span class="line">            CGPoint convertedPoint = [subview convertPoint:point fromView:self];</span><br><span class="line">            UIView *hitTestView = [subview hitTest:convertedPoint withEvent:event];</span><br><span class="line">            if (hitTestView) &#123;</span><br><span class="line">                return hitTestView;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return self;</span><br><span class="line">    &#125;</span><br><span class="line">    return nil;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="pointInside"><a href="#pointInside" class="headerlink" title="pointInside"></a>pointInside</h2><h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><ol>
+<li>扩大UIButton的点击区域</li>
+<li>子view超出了父view的bounds响应事件（父view不去判断point inside直接遍历subView）</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/10/12/OC之事件传递响应链/" data-id="cjxpp24vb000dcyz6ueywo54g" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-iOS之HTTP-HTTPS-TCP-UDP-DNS" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" class="article-date">
+  <time datetime="2017-10-11T09:01:10.000Z" itemprop="datePublished">2017-10-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/">iOS之HTTP,HTTPS,TCP,UDP,DNS</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="http"><a href="#http" class="headerlink" title="http"></a>http</h2><p>get, post, head, put ,delete 等方法<br>request header<br>request body</p>
+<p>response code<br>response header<br>response body</p>
+<h2 id="https"><a href="#https" class="headerlink" title="https"></a>https</h2><p>相对于http多了一个TLS加密层，目的是加密、完整性校验以及身份认证</p>
+<p>大概过程如下</p>
+<ol>
+<li>客户端发起HTTPS请求</li>
+<li>服务端的配置 （生成公钥私钥）</li>
+<li>传送证书（证书相当于公钥）</li>
+<li>客户端解析证书（共公钥加密一个随机数）</li>
+<li>传送加密信息（发给服务端）</li>
+<li>服务端解密信息（获得随机数）</li>
+<li>传输加密后的信息（用这个随机数加密后传给客户端）</li>
+<li>客户端解密信息</li>
+</ol>
+<h2 id="TCP"><a href="#TCP" class="headerlink" title="TCP"></a>TCP</h2><p>TCP通过校验和、序列号、确认应答、重发控制、连接管理以及窗口控制等机制实现可靠性传输。</p>
+<h3 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h3><ol>
+<li>第一次握手：建立连接。客户端发送连接请求报文段，将SYN位置为1，Sequence Number为x；然后，客户端进入SYN_SEND状态，等待服务器的确认；</li>
+<li>第二次握手：服务器收到SYN报文段。服务器收到客户端的SYN报文段，需要对这个SYN报文段进行确认，设置Acknowledgment Number为x+1(Sequence Number+1)；同时，自己自己还要发送SYN请求信息，将SYN位置为1，Sequence Number为y；服务器端将上述所有信息放到一个报文段（即SYN+ACK报文段）中，一并发送给客户端，此时服务器进入SYN_RECV状态；</li>
+<li>第三次握手：客户端收到服务器的SYN+ACK报文段。然后将Acknowledgment Number设置为y+1，向服务器发送ACK报文段，这个报文段发送完毕以后，客户端和服务器端都进入ESTABLISHED状态，完成TCP三次握手。<br>完成了三次握手，客户端和服务器端就可以开始传送数据。以上就是TCP三次握手的总体介绍。</li>
+</ol>
+<h2 id="UDP"><a href="#UDP" class="headerlink" title="UDP"></a>UDP</h2><p>无需建立连接（减少延迟</p>
+<h2 id="DNS"><a href="#DNS" class="headerlink" title="DNS"></a>DNS</h2><p>域名解析服务</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" data-id="cjxpp24vl000mcyz6ql5ur05d" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-OC之属性关键字" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/29/OC之属性关键字/" class="article-date">
+  <time datetime="2017-09-29T05:47:39.000Z" itemprop="datePublished">2017-09-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/29/OC之属性关键字/">OC之属性关键字</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="assgin"><a href="#assgin" class="headerlink" title="assgin"></a>assgin</h2><p>assgin 用于纯量属性，不会增加引用计数。不要用来修饰对象，因为对象释放后，assgin修饰的变量不会置为nil，可能会导致野指针错误！</p>
+<h2 id="weak"><a href="#weak" class="headerlink" title="weak"></a>weak</h2><p>用于对象不使retainCount增加，对象释放后会置为nil。</p>
+<blockquote>
+<p>runtime 对注册的类，会进行布局，对于weak对象会放入一个hash表中。用weak指向的对象内存地址作为key，当此对象的引用计数为0的时候会dealloc，假如weak指向的对象内存地址是a，那么就会以a为键，在这个weak表中搜索，找到所有以a为键的weak对象，从而设置为nil。反之如果对象本身先释放，则将其从table中删除。</p>
+</blockquote>
+<h2 id="strong"><a href="#strong" class="headerlink" title="strong"></a>strong</h2><p>用于对象会使retainCount 增加</p>
+<h2 id="copy"><a href="#copy" class="headerlink" title="copy"></a>copy</h2><p>区别在set方法不用。<br>Block为什么用Copy</p>
+<blockquote>
+<p>Note: You should specify copy as the property attribute, because a block needs to be copied to keep track of its captured state outside of the original scope. This isn’t something you need to worry about when using Automatic Reference Counting, as it will happen automatically, but it’s best practice for the property attribute to show the resultant behavior. For more information, see Blocks Programming Topics.</p>
+</blockquote>
+<h2 id="atomic"><a href="#atomic" class="headerlink" title="atomic"></a>atomic</h2><p>原子性</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">- (UITextField *) userName &#123;</span><br><span class="line">    UITextField *retval = nil;</span><br><span class="line">    @synchronized(self) &#123;</span><br><span class="line">        retval = [[userName retain] autorelease];</span><br><span class="line">    &#125;</span><br><span class="line">    return retval;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void) setUserName:(UITextField *)userName_ &#123;</span><br><span class="line">    @synchronized(self) &#123;</span><br><span class="line">      [userName release];</span><br><span class="line">      userName = [userName_ retain];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="nonatomic"><a href="#nonatomic" class="headerlink" title="nonatomic"></a>nonatomic</h2><p>非原子性</p>
+<h2 id="readonly"><a href="#readonly" class="headerlink" title="readonly"></a>readonly</h2><p>只读，不合成set方法</p>
+<h2 id="nullable"><a href="#nullable" class="headerlink" title="nullable"></a>nullable</h2><p>可以为nil 对应Swift的optional</p>
+<h2 id="nonnull"><a href="#nonnull" class="headerlink" title="nonnull"></a>nonnull</h2><p>不可以为nil 对应Swift的non optional</p>
+<h2 id="ViewController的生命周期"><a href="#ViewController的生命周期" class="headerlink" title="ViewController的生命周期"></a>ViewController的生命周期</h2><p>First viewDidLoad       //1<br>First viewWillAppear    //2<br>First viewDidAppear     //3<br>—Click Push<br>First viewWillDisappear //4<br>Second viewDidLoad      //5<br>Second viewWillAppear   //6<br>—Push Finish<br>First viewDidDisappear  //7<br>Second viewDidAppear    //8<br>—Click Pop<br>Second viewWillDisappear//9<br>First viewWillAppear    //10<br>—Pop Finish<br>Second viewDidDisappear //11<br>First viewDidAppear     //12</p>
+<h2 id="Autolayout的过程"><a href="#Autolayout的过程" class="headerlink" title="Autolayout的过程"></a>Autolayout的过程</h2><p>(setNeedUpdateConstraints,updateConstraintsIfNeeded)-&gt;updateConstraints<br>(setNeedsLayout,layoutIfNeeded)-&gt; layoutSubViews<br>-&gt; drawRect</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="cjxpp24vd000fcyz6en7v543s" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-OC之消息与转发" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/28/OC之消息与转发/" class="article-date">
+  <time datetime="2017-09-28T07:22:38.000Z" itemprop="datePublished">2017-09-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/28/OC之消息与转发/">OC之消息与转发</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="方法调用"><a href="#方法调用" class="headerlink" title="方法调用"></a>方法调用</h2><p>当我刚学习的时候，我觉得方法和函数是一个东西。那时候too young too simple。<br>后来我学了一点，我以为属于类的就是方法。也对不太对。在OC中调用方法其实是发消息objc_msgSend。函数则是直接执行。</p>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><p>详见objc-runtime-new.mm</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Method <span class="title">class_getInstanceMethod</span><span class="params">(Class cls, SEL sel)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls  ||  !sel) <span class="keyword">return</span> nil;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// This deliberately avoids +initialize because it historically did so.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// This implementation is a bit weird because it's the only place that </span></span><br><span class="line">    <span class="comment">// wants a Method instead of an IMP.</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">warning</span> fixme build and search caches</span></span><br><span class="line">        </span><br><span class="line">    <span class="comment">// Search method lists, try method resolver, etc.</span></span><br><span class="line">    lookUpImpOrNil(cls, sel, nil, </span><br><span class="line">                   NO<span class="comment">/*initialize*/</span>, NO<span class="comment">/*cache*/</span>, YES<span class="comment">/*resolver*/</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">warning</span> fixme build and search caches</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> _class_getMethod(cls, sel);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">IMP <span class="title">lookUpImpOrNil</span><span class="params">(Class cls, SEL sel, id inst, </span></span></span><br><span class="line"><span class="function"><span class="params">                   <span class="keyword">bool</span> initialize, <span class="keyword">bool</span> cache, <span class="keyword">bool</span> resolver)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    IMP imp = lookUpImpOrForward(cls, sel, inst, initialize, cache, resolver);</span><br><span class="line">    <span class="keyword">if</span> (imp == _objc_msgForward_impcache) <span class="keyword">return</span> nil;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">return</span> imp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">IMP <span class="title">lookUpImpOrForward</span><span class="params">(Class cls, SEL sel, id inst, </span></span></span><br><span class="line"><span class="function"><span class="params">                       <span class="keyword">bool</span> initialize, <span class="keyword">bool</span> cache, <span class="keyword">bool</span> resolver)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Class curClass;</span><br><span class="line">    IMP imp = nil;</span><br><span class="line">    Method meth;</span><br><span class="line">    <span class="keyword">bool</span> triedResolver = NO;</span><br><span class="line"></span><br><span class="line">    runtimeLock.assertUnlocked();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Optimistic cache lookup</span></span><br><span class="line">    <span class="keyword">if</span> (cache) &#123;</span><br><span class="line">        imp = cache_getImp(cls, sel);   <span class="comment">//0. 根据Class和SEL在cache中寻找IMP</span></span><br><span class="line">        <span class="keyword">if</span> (imp) <span class="keyword">return</span> imp;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!cls-&gt;isRealized()) &#123;           <span class="comment">//1. Class没有实现，实现这个Class</span></span><br><span class="line">        <span class="keyword">rwlock_writer_t</span> lock(runtimeLock);</span><br><span class="line">        realizeClass(cls);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (initialize  &amp;&amp;  !cls-&gt;isInitialized()) &#123;<span class="comment">//2. Class没有Initailize,也就是说在第一次收到消息的时候Initialize这个Class</span></span><br><span class="line">        _class_initialize (_class_getNonMetaClass(cls, inst));</span><br><span class="line">        <span class="comment">// If sel == initialize, _class_initialize will send +initialize and </span></span><br><span class="line">        <span class="comment">// then the messenger will send +initialize again after this </span></span><br><span class="line">        <span class="comment">// procedure finishes. Of course, if this is not being called </span></span><br><span class="line">        <span class="comment">// from the messenger then it won't happen. 2778172</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// The lock is held to make method-lookup + cache-fill atomic </span></span><br><span class="line">    <span class="comment">// with respect to method addition. Otherwise, a category could </span></span><br><span class="line">    <span class="comment">// be added but ignored indefinitely because the cache was re-filled </span></span><br><span class="line">    <span class="comment">// with the old value after the cache flush on behalf of the category.</span></span><br><span class="line"> retry:</span><br><span class="line">    runtimeLock.read();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Try this class's cache.</span></span><br><span class="line"></span><br><span class="line">    imp = cache_getImp(cls, sel);<span class="comment">//3. 在自身的类缓存中查找</span></span><br><span class="line">    <span class="keyword">if</span> (imp) <span class="keyword">goto</span> done;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Try this class's method lists.</span></span><br><span class="line"></span><br><span class="line">    meth = getMethodNoSuper_nolock(cls, sel);<span class="comment">//4. 在自身的类中查找</span></span><br><span class="line">    <span class="keyword">if</span> (meth) &#123;</span><br><span class="line">        log_and_fill_cache(cls, meth-&gt;imp, sel, inst, cls);<span class="comment">//5. 添加到缓存</span></span><br><span class="line">        imp = meth-&gt;imp;</span><br><span class="line">        <span class="keyword">goto</span> done;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Try superclass caches and method lists.</span></span><br><span class="line"></span><br><span class="line">    curClass = cls;</span><br><span class="line">    <span class="keyword">while</span> ((curClass = curClass-&gt;superclass)) &#123;</span><br><span class="line">        <span class="comment">// Superclass cache.</span></span><br><span class="line">        imp = cache_getImp(curClass, sel);<span class="comment">// 6. 父类缓存中查找</span></span><br><span class="line">        <span class="keyword">if</span> (imp) &#123;</span><br><span class="line">            <span class="keyword">if</span> (imp != (IMP)_objc_msgForward_impcache) &#123;</span><br><span class="line">                <span class="comment">// Found the method in a superclass. Cache it in this class.</span></span><br><span class="line">                log_and_fill_cache(cls, imp, sel, inst, curClass);</span><br><span class="line">                <span class="keyword">goto</span> done;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// Found a forward:: entry in a superclass.</span></span><br><span class="line">                <span class="comment">// Stop searching, but don't cache yet; call method </span></span><br><span class="line">                <span class="comment">// resolver for this class first.</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Superclass method list.</span></span><br><span class="line">        meth = getMethodNoSuper_nolock(curClass, sel);<span class="comment">// 父类中查找</span></span><br><span class="line">        <span class="keyword">if</span> (meth) &#123;</span><br><span class="line">            log_and_fill_cache(cls, meth-&gt;imp, sel, inst, curClass);<span class="comment">// 添加到自身的缓存</span></span><br><span class="line">            imp = meth-&gt;imp;</span><br><span class="line">            <span class="keyword">goto</span> done;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// No implementation found. Try method resolver once.</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (resolver  &amp;&amp;  !triedResolver) &#123;</span><br><span class="line">        runtimeLock.unlockRead();</span><br><span class="line">        _class_resolveMethod(cls, sel, inst);<span class="comment">// 消息转发 内部判断不是元类调用resolveInstanceMethod, 是元类调用resolveClassMethod</span></span><br><span class="line">        <span class="comment">// Don't cache the result; we don't hold the lock so it may have </span></span><br><span class="line">        <span class="comment">// changed already. Re-do the search from scratch instead.</span></span><br><span class="line">        triedResolver = YES;</span><br><span class="line">        <span class="keyword">goto</span> retry;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// No implementation found, and method resolver didn't help. </span></span><br><span class="line">    <span class="comment">// Use forwarding.</span></span><br><span class="line"></span><br><span class="line">    imp = (IMP)_objc_msgForward_impcache;</span><br><span class="line">    cache_fill(cls, sel, imp, inst);</span><br><span class="line"></span><br><span class="line"> done:</span><br><span class="line">    runtimeLock.unlockRead();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> imp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="发消息的流程"><a href="#发消息的流程" class="headerlink" title="发消息的流程"></a>发消息的流程</h2><ol>
+<li>根据Class和SEL在缓存中寻找IMP, 找到直接return imp</li>
+<li>判断Class是否实现，是否initialize，根据Class methodlist中，寻找SEL的IMP，找到添加cache, return imp</li>
+<li>到父类中找, 先cache, 再methods, 添加cache（看源码好像是添加到当前类的cache, 如果再调用父类）</li>
+<li>都没找到执行_objc_msgForward</li>
+<li>_objc_msgForward_impcache</li>
+</ol>
+<h2 id="转发流程"><a href="#转发流程" class="headerlink" title="转发流程"></a>转发流程</h2><p>结合NSObject文档可以知道，_objc_msgForward消息转发做了如下几件事：</p>
+<ol>
+<li>调用resolveInstanceMethod:方法，允许用户在此时为该Class动态添加实现。如果有实现了，则调用并返回。如果仍没实现，继续下面的动作。</li>
+<li>调用forwardingTargetForSelector:方法，尝试找到一个能响应该消息的对象。如果获取到，则直接转发给它。如果返回了nil，继续下面的动作。</li>
+<li>调用methodSignatureForSelector:方法，尝试获得一个方法签名。如果获取不到，则直接调用doesNotRecognizeSelector抛出异常。</li>
+<li>调用forwardInvocation:方法，将地3步获取到的方法签名包装成Invocation传入，如何处理就在这里面了</li>
+</ol>
+<p>Tips ==&gt; TypeCoding<br>“v@:” // 依次为返回值，self, SEL, 参数列表。 v代表返回值为void；@代表参数对象类型，这种情况为消息转发的对象；：代表参数为SEL类型，这种情况为消息转发的SEL;</p>
+<h2 id="NSInvocation"><a href="#NSInvocation" class="headerlink" title="NSInvocation"></a>NSInvocation</h2><p>NSInvocation对于参数&gt;2个或者有返回值的处理的封装</p>
+<ol>
+<li>类方法创建, NSMethodSignature由方法属于的类创建。</li>
+</ol>
+<ul>
+<li>(NSInvocation <em>)invocationWithMethodSignature:(NSMethodSignature </em>)sig;</li>
+</ul>
+<ol>
+<li><p>指定obj执行这个方法，在这之前可以设置参数。<br>[invocation invokeWithTarget: obj];</p>
+<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2></li>
+<li><p>@dynamic 属性</p>
+</li>
+<li>多继承</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/28/OC之消息与转发/" data-id="cjxpp24vc000ecyz6ymr3v7h7" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-OC之GCD和NSOperation" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/28/OC之GCD和NSOperation/" class="article-date">
+  <time datetime="2017-09-28T05:44:57.000Z" itemprop="datePublished">2017-09-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/28/OC之GCD和NSOperation/">OC之GCD和NSOperation</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="区别和优势"><a href="#区别和优势" class="headerlink" title="区别和优势"></a>区别和优势</h2><p>控制并发数、取消、添加依赖关系等需要使用 NSOperation Queue。<br>可复用性高的任务建议使用 NSOperation 实现。</p>
+<p>对于简单的任务使用 GCD 即可</p>
+<h2 id="同步异步"><a href="#同步异步" class="headerlink" title="同步异步"></a>同步异步</h2><p>dispatch_sync<br>dispatch_async</p>
+<h2 id="串行并行"><a href="#串行并行" class="headerlink" title="串行并行"></a>串行并行</h2><p>串行表示一次只能执行一个任务，只有当前一个任务完成后才启动下一个任务，而并行指可以同时执行多个任务。<br>常见于GCD的串行和并发队列。</p>
+<h2 id="NSOperation-抽象类"><a href="#NSOperation-抽象类" class="headerlink" title="NSOperation(抽象类)"></a>NSOperation(抽象类)</h2><p>main<br>start<br>cancel<br>ready<br>asynchronous</p>
+<p>NSBlockOperation<br>NSInvocationOperation</p>
+<h3 id="自定义-并发的-NSOperation"><a href="#自定义-并发的-NSOperation" class="headerlink" title="自定义 并发的 NSOperation"></a>自定义 并发的 NSOperation</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">- (void)setFinished:(BOOL)finished &#123; // 手动触发KVO</span><br><span class="line">    [self willChangeValueForKey:@&quot;isFinished&quot;];</span><br><span class="line">    _finished = finished;</span><br><span class="line">    [self didChangeValueForKey:@&quot;isFinished&quot;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)setExecuting:(BOOL)executing &#123;</span><br><span class="line">    [self willChangeValueForKey:@&quot;isExecuting&quot;];</span><br><span class="line">    _executing = executing;</span><br><span class="line">    [self didChangeValueForKey:@&quot;isExecuting&quot;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (BOOL)isConcurrent &#123;// 一直返回YES，表示并发的NSOperation</span><br><span class="line">    return YES;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="NSOperationQueue"><a href="#NSOperationQueue" class="headerlink" title="NSOperationQueue"></a>NSOperationQueue</h2><h2 id="GCD"><a href="#GCD" class="headerlink" title="GCD"></a>GCD</h2><ol>
+<li><p>同步异步函数<br>dispatch_sync<br>dispatch_async</p>
+</li>
+<li><p>延迟函数<br>dispatch_after</p>
+</li>
+<li><p>一次性函数<br>dispatch_once</p>
+</li>
+<li><p>信号量<br>dispatch_semaphore_t semaphore = dispatch_semaphore_create(10); //资源数是10, 为0没有资源<br>dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);      //semaphore–<br>dispatch_semaphore_signal(semaphore);                           //semaphore++</p>
+</li>
+<li><p>group<br>dispatch_group_t<br>dispatch_group_notify</p>
+</li>
+<li><p>循环和栅栏<br>dispatch_apply //同步函数，重复执行。会阻塞当前线程直到所有循环迭代执行完成<br>dispatch_barrier_async// 栅栏函数，用于同步。</p>
+</li>
+<li><p>GCD的timer</p>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/28/OC之GCD和NSOperation/" data-id="cjxpp24v9000bcyz6t7sqbn3e" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-OC之Runloop" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/28/OC之Runloop/" class="article-date">
+  <time datetime="2017-09-28T05:30:15.000Z" itemprop="datePublished">2017-09-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/28/OC之Runloop/">OC之Runloop</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="runloop简介"><a href="#runloop简介" class="headerlink" title="runloop简介"></a>runloop简介</h2><p>runloop是线程的基础支撑。一般情况下，一个线程执行任务，执行完成后线程就退出了, 然而runloop能使线程随时处理时间但是不退出。runloop的目的是使线程在没有事情可做时进入休眠状态，避免CPU空转。<br>每个具体的runloop就是一个eventloop循环。</p>
+<h2 id="runloop的Thread"><a href="#runloop的Thread" class="headerlink" title="runloop的Thread"></a>runloop的Thread</h2><p>只有 main thread 的 runloop 默认是开启的，其他线程如果希望持续存活下去，就需要手动开启runloop。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NSRunLoop *runLoop = [NSRunLoop currentRunLoop];                    //1. lazy的方式获得runloop</span><br><span class="line">[runLoop addPort: [NSMachPort port] forMode:NSDefaultRunLoopMode];  //2. 至少有一个Timer,Observer/Source</span><br><span class="line">[runLoop run];                                                      //3. 开启runloop</span><br></pre></td></tr></table></figure>
+<p>需要开启的情况</p>
+<ol>
+<li>需要通过端口或自定义输入源与其他线程通讯；</li>
+<li>在线程中需要使用定时器；</li>
+<li>在线程上使用performSelector系列方法；</li>
+<li>需要线程周期性地执行一些任务</li>
+</ol>
+<h2 id="RunLoop-和-RunLoopMode"><a href="#RunLoop-和-RunLoopMode" class="headerlink" title="RunLoop 和 RunLoopMode"></a>RunLoop 和 RunLoopMode</h2><p>struct __CFRunLoopMode {<br>    CFStringRef _name;<br>    CFMutableSetRef _sources0;<br>    CFMutableSetRef _sources1;<br>    CFMutableArrayRef _observers;<br>    CFMutableArrayRef _timers;<br>};</p>
+<p>struct __CFRunLoop {<br>    CFMutableSetRef _commonModes;           // 字符串的集合(common)<br>    CFMutableSetRef _commonModeItems;       // timer加到这里去，会被copy到所有common的mode<br>    CFRunLoopModeRef _currentMode;          //<br>    CFMutableSetRef _modes;                 // mode的集合（default,tracking）<br>};</p>
+<h2 id="runloop的Modes"><a href="#runloop的Modes" class="headerlink" title="runloop的Modes"></a>runloop的Modes</h2><p>NSDefaultRunLoopMode<br>NSEventTrackingRunLoopMode<br>NSRunLoopCommonModes包含后者</p>
+<p>关于Timer在滚动的时候不执行的<br>ScrollView滚动时，系统会将main runloop切换到NSEventTrackingRunLoopMode。<br><code>Use the scheduledTimerWithTimeInterval:invocation:repeats: or scheduledTimerWithTimeInterval:target:selector:userInfo:repeats: class method to create the timer and schedule it on the current run loop in the default mode.</code><br>所以需要将[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];</p>
+<h2 id="runloop处理什么"><a href="#runloop处理什么" class="headerlink" title="runloop处理什么"></a>runloop处理什么</h2><p>AutoreleasePool<br>事件响应（苹果注册了一个 Source1 (基于 mach port 的) 用来接收系统事件）<br>手势识别（）<br>界面更新(把uiview和calayer标记为未处理)<br>timer事件<br>PerformSelecter(内部通过一个timer)</p>
+<h2 id="update-2019-05-19-源码记录。"><a href="#update-2019-05-19-源码记录。" class="headerlink" title="update 2019.05.19 源码记录。"></a>update 2019.05.19 源码记录。</h2><h2 id="CFRunLoopActivity"><a href="#CFRunLoopActivity" class="headerlink" title="CFRunLoopActivity"></a>CFRunLoopActivity</h2><p>kCFRunLoopEntry<br>kCFRunLoopBeforeTimers<br>kCFRunLoopBeforeSources<br>kCFRunLoopBeforeWaiting<br>kCFRunLoopAfterWaiting<br>kCFRunLoopExit<br>kCFRunLoopAllActivities</p>
+<h2 id="Modes"><a href="#Modes" class="headerlink" title="Modes"></a>Modes</h2><p>kCFRunLoopDefaultMode<br>kCFRunLoopCommonModes</p>
+<h2 id="CFRunLoop不能创建，只能通过GetMain和GetCurrent获取"><a href="#CFRunLoop不能创建，只能通过GetMain和GetCurrent获取" class="headerlink" title="CFRunLoop不能创建，只能通过GetMain和GetCurrent获取"></a>CFRunLoop不能创建，只能通过GetMain和GetCurrent获取</h2><p>CF_EXPORT CFRunLoopRef CFRunLoopGetCurrent(void);<br>CF_EXPORT CFRunLoopRef CFRunLoopGetMain(void);</p>
+<p>CF_EXPORT CFRunLoopRef _CFRunLoopGet0(pthread_t t);</p>
+<ol>
+<li>初始化字段 key为pthread, value为runloop。</li>
+<li>预先放一个mainLoop</li>
+<li>再找对应的runLoop，没有则创建一个</li>
+</ol>
+<p>static CFRunLoopRef __CFRunLoopCreate(pthread_t t);</p>
+<ol>
+<li>默认创建kCFRunLoopDefaultMode，并在CommonModes。</li>
+</ol>
+<h2 id="根据ModeName创建CFRunLoopMode"><a href="#根据ModeName创建CFRunLoopMode" class="headerlink" title="根据ModeName创建CFRunLoopMode"></a>根据ModeName创建CFRunLoopMode</h2><p>static CFRunLoopModeRef __CFRunLoopFindMode(CFRunLoopRef rl, CFStringRef modeName, Boolean create)</p>
+<h2 id="加一个Mode到CommonModes"><a href="#加一个Mode到CommonModes" class="headerlink" title="加一个Mode到CommonModes"></a>加一个Mode到CommonModes</h2><p>1 现将ModeName 加到_commonModes<br>2 将_commonModeItems 同步到，这新的ModeName下。</p>
+<h2 id="加一个ModeItem到CommonModes中"><a href="#加一个ModeItem到CommonModes中" class="headerlink" title="加一个ModeItem到CommonModes中"></a>加一个ModeItem到CommonModes中</h2><p>1 将 modeItem 加到 _commonModeItems中<br>2 将 modeItem 同步加到所有的_commonModes中</p>
+<h3 id="CFRunLoop执行Block"><a href="#CFRunLoop执行Block" class="headerlink" title="CFRunLoop执行Block"></a>CFRunLoop执行Block</h3><p>void CFRunLoopPerformBlock(CFRunLoopRef rl, CFTypeRef mode, void (^block)(void))</p>
+<h3 id="Source-Source0和Source1"><a href="#Source-Source0和Source1" class="headerlink" title="Source (Source0和Source1)"></a>Source (Source0和Source1)</h3><h3 id="Observer"><a href="#Observer" class="headerlink" title="Observer"></a>Observer</h3><h3 id="Timer"><a href="#Timer" class="headerlink" title="Timer"></a>Timer</h3><h2 id="CFRunLoopRun"><a href="#CFRunLoopRun" class="headerlink" title="CFRunLoopRun"></a>CFRunLoopRun</h2><p>CF_EXPORT SInt32 CFRunLoopRunInMode(CFStringRef mode, CFTimeInterval seconds, Boolean returnAfterSourceHandled);</p>
+<h3 id="CFRunLoopRef"><a href="#CFRunLoopRef" class="headerlink" title="CFRunLoopRef"></a>CFRunLoopRef</h3><p>typedef struct <strong>CFRunLoop * CFRunLoopRef;<br>struct </strong>CFRunLoop {<br>    CFRuntimeBase _base;<br>    pthread_mutex_t _lock;            /<em> locked for accessing mode list </em>/<br>    __CFPort _wakeUpPort;            // used for CFRunLoopWakeUp<br>    Boolean _unused;<br>    volatile _per_run_data <em>_perRunData;              // reset for runs of the run loop<br>    pthread_t _pthread;<br>    uint32_t _winthread;<br>    CFMutableSetRef _commonModes;<br>    CFMutableSetRef _commonModeItems;<br>    CFRunLoopModeRef _currentMode;<br>    CFMutableSetRef _modes;<br>    struct _block_item </em>_blocks_head;<br>    struct _block_item *_blocks_tail;<br>    CFAbsoluteTime _runTime;<br>    CFAbsoluteTime _sleepTime;<br>    CFTypeRef _counterpart;<br>};</p>
+<p>_commonModes 是个字符串的集合（default,uitrack…）<br>_commonModeItems 是个（Source,Timer,Observer）的集合<br>_modes 是mode的集合</p>
+<h3 id="CFRunLoopModeRef"><a href="#CFRunLoopModeRef" class="headerlink" title="CFRunLoopModeRef"></a>CFRunLoopModeRef</h3><p>typedef struct <strong>CFRunLoopMode *CFRunLoopModeRef;<br>struct </strong>CFRunLoopMode {<br>    CFRuntimeBase _base;<br>    pthread_mutex_t _lock;    /<em> must have the run loop locked before locking this </em>/<br>    CFStringRef _name;<br>    Boolean _stopped;<br>    char _padding[3];<br>    CFMutableSetRef _sources0;<br>    CFMutableSetRef _sources1;<br>    CFMutableArrayRef _observers;<br>    CFMutableArrayRef _timers;<br>    CFMutableDictionaryRef _portToV1SourceMap;<br>    __CFPortSet _portSet;<br>    CFIndex _observerMask;</p>
+<p>#if USE_MK_TIMER_TOO<br>    mach_port_t _timerPort;<br>    Boolean _mkTimerArmed;</p>
+<p>#endif<br>    uint64_t _timerSoftDeadline; /<em> TSR </em>/<br>    uint64_t _timerHardDeadline; /<em> TSR </em>/<br>};</p>
+<h3 id="CFRunLoopSourceRef"><a href="#CFRunLoopSourceRef" class="headerlink" title="CFRunLoopSourceRef"></a>CFRunLoopSourceRef</h3><p>typedef struct <strong>CFRunLoopSource * CFRunLoopSourceRef;<br>struct </strong>CFRunLoopSource {<br>    CFRuntimeBase _base;<br>    uint32_t _bits;<br>    pthread_mutex_t _lock;<br>    CFIndex _order;            /<em> immutable </em>/<br>    CFMutableBagRef _runLoops;<br>    union {<br>    CFRunLoopSourceContext version0;    /<em> immutable, except invalidation </em>/<br>        CFRunLoopSourceContext1 version1;    /<em> immutable, except invalidation </em>/<br>    } _context;<br>};</p>
+<h3 id="CFRunLoopObserverRef"><a href="#CFRunLoopObserverRef" class="headerlink" title="CFRunLoopObserverRef"></a>CFRunLoopObserverRef</h3><p>typedef struct <strong>CFRunLoopObserver * CFRunLoopObserverRef;<br>struct </strong>CFRunLoopObserver {<br>    CFRuntimeBase _base;<br>    pthread_mutex_t _lock;<br>    CFRunLoopRef _runLoop;<br>    CFIndex _rlCount;<br>    CFOptionFlags _activities;        /<em> immutable </em>/<br>    CFIndex _order;            /<em> immutable </em>/<br>    CFRunLoopObserverCallBack _callout;    /<em> immutable </em>/<br>    CFRunLoopObserverContext _context;    /<em> immutable, except invalidation </em>/<br>};</p>
+<h3 id="CFRunLoopTimerRef"><a href="#CFRunLoopTimerRef" class="headerlink" title="CFRunLoopTimerRef"></a>CFRunLoopTimerRef</h3><p>typedef struct CF_BRIDGED_MUTABLE_TYPE(NSTimer) <strong>CFRunLoopTimer * CFRunLoopTimerRef;<br>struct </strong>CFRunLoopTimer {<br>    CFRuntimeBase _base;<br>    uint16_t _bits;<br>    pthread_mutex_t _lock;<br>    CFRunLoopRef _runLoop;<br>    CFMutableSetRef _rlModes;<br>    CFAbsoluteTime _nextFireDate;<br>    CFTimeInterval _interval;        /<em> immutable </em>/<br>    CFTimeInterval _tolerance;          /<em> mutable </em>/<br>    uint64_t _fireTSR;            /<em> TSR units </em>/<br>    CFIndex _order;            /<em> immutable </em>/<br>    CFRunLoopTimerCallBack _callout;    /<em> immutable </em>/<br>    CFRunLoopTimerContext _context;    /<em> immutable, except invalidation </em>/<br>};</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/28/OC之Runloop/" data-id="cjxpp24va000ccyz62kyjsmt8" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-OC之Block" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/28/OC之Block/" class="article-date">
+  <time datetime="2017-09-28T04:12:05.000Z" itemprop="datePublished">2017-09-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/28/OC之Block/">OC之Block</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Block的结构"><a href="#Block的结构" class="headerlink" title="Block的结构"></a>Block的结构</h2><p>首先来说，block也是一个对象，因为它也有isa指针。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// revised new layout</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Block_descriptor</span> // 引用了外部变量才会有<span class="title">copy</span>和<span class="title">dispose</span>函数</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">int</span> reserved;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">int</span> size;</span><br><span class="line">    <span class="keyword">void</span> (*copy)(<span class="keyword">void</span> *dst, <span class="keyword">void</span> *src);</span><br><span class="line">    <span class="keyword">void</span> (*dispose)(<span class="keyword">void</span> *);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Block_layout</span> 			// <span class="title">block</span>对应的结构体</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">void</span> *isa; <span class="comment">// 以下三种类型</span></span><br><span class="line">    <span class="keyword">int</span> flags;</span><br><span class="line">    <span class="keyword">int</span> reserved; </span><br><span class="line">    <span class="keyword">void</span> (*invoke)(<span class="keyword">void</span> *, ...);</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">Block_descriptor</span> *<span class="title">descriptor</span>;</span></span><br><span class="line">    <span class="comment">// imported variables</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h2 id="Block的种类"><a href="#Block的种类" class="headerlink" title="Block的种类"></a>Block的种类</h2><p>_NSConcreteGlobalBlock。     //1. 全局Block,分布在数据区;2.函数内部定义，没有引用任何外部变量。<br>_NSConcreteStackBlock。      //1. 通过copy分配到stack上的Block。<br>_NSConcreteMallocBlock。     //1. 其他</p>
+<h2 id="Block-从stack中copy到heap上"><a href="#Block-从stack中copy到heap上" class="headerlink" title="Block 从stack中copy到heap上"></a>Block 从stack中copy到heap上</h2><p>将block赋给strong类型的变量时，编译器会自动将其copy到heap上。<br>block作为函数的参数、为__weak类型的block变量赋值, 编译器不会自动copy。<br>将_NSConcreteStackBlock类型的block copy到heap上变成_NSConcreteMallocBlock类型的block时，会retain其引用的外部object。</p>
+<h3 id="指导原则"><a href="#指导原则" class="headerlink" title="指导原则"></a>指导原则</h3><p>block进行多次copy都不会有问题</p>
+<h2 id="Block-内部可以修改的的外部变量"><a href="#Block-内部可以修改的的外部变量" class="headerlink" title="Block 内部可以修改的的外部变量"></a>Block 内部可以修改的的外部变量</h2><ol>
+<li>全局变量、全局静态变量、静态变量以及类的成员变量。</li>
+<li><p>用__block修饰的自变量。仅仅是这个变量自身（而不是指向的对象）会被转成一个结构。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> __<span class="title">Block_byref_blockArr_0</span> &#123;</span></span><br><span class="line"><span class="keyword">void</span> *__isa;</span><br><span class="line">__Block_byref_blockArr_0 *__forwarding;</span><br><span class="line"><span class="keyword">int</span> __flags;</span><br><span class="line"><span class="keyword">int</span> __size;</span><br><span class="line"><span class="keyword">void</span> (*__Block_byref_id_object_copy)(<span class="keyword">void</span>*, <span class="keyword">void</span>*);</span><br><span class="line"><span class="keyword">void</span> (*__Block_byref_id_object_dispose)(<span class="keyword">void</span>*);</span><br><span class="line">NSArray *blockArr;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> (*blockA)(<span class="keyword">void</span>) = ((<span class="keyword">void</span> (*)())&amp;__main_block_impl_0(</span><br><span class="line">        (<span class="keyword">void</span> *)__main_block_func_0, </span><br><span class="line">        &amp;__main_block_desc_0_DATA, </span><br><span class="line">        (__Block_byref_blockArr_0 *)&amp;blockArr,</span><br><span class="line">        <span class="number">570425344</span>)</span><br><span class="line">     );</span><br><span class="line"></span><br><span class="line">__main_block_desc_0_DATA = &#123; </span><br><span class="line">    <span class="number">0</span>, </span><br><span class="line">    <span class="keyword">sizeof</span>(struct __main_block_impl_0), </span><br><span class="line">    __main_block_copy_0, </span><br><span class="line">    __main_block_dispose_0</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> __main_block_copy_0(struct __main_block_impl_0*dst, struct __main_block_impl_0*src) &#123;</span><br><span class="line">    _Block_object_assign(</span><br><span class="line">        (<span class="keyword">void</span>*)&amp;dst-&gt;blockArr, </span><br><span class="line">        (<span class="keyword">void</span>*)src-&gt;blockArr, </span><br><span class="line">        <span class="number">8</span><span class="comment">/*BLOCK_FIELD_IS_BYREF*/</span></span><br><span class="line">        );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>block变量会随block copy到heap而同样被copy到heap上。其最终会调用到_Block_object_assign函数。<br>因此，在此情况下就存在同时访问stack上和heap上 </strong>block变量的情况。这就是 <strong>forwarding指针的使命所在。<br>当block变量从stack到copy到heap上时，stack上的forwarding被修改为指向heap上的block变量。通过该机制（stack中访问的是p.</strong>forwarding.p, heap中直接是p），使得无论是在stack上还是heap上都能访问到同一个(heap上)block变量（stack上的变量常规方式已经不可访问）。</p>
+</li>
+</ol>
+<p>体会一下。blockStr.__forwarding-&gt;blockStr<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line">    </span><br><span class="line">    NSMutableString *str = [NSMutableString stringWithFormat:@&quot;123&quot;];</span><br><span class="line">    __block NSMutableString *blockStr = str;</span><br><span class="line">    void (^blockB)(void) = ^&#123;</span><br><span class="line">        [blockStr appendString:@&quot;4&quot;];</span><br><span class="line">        blockStr = [NSMutableString stringWithFormat:@&quot;321&quot;];</span><br><span class="line">        NSLog(@&quot;%@&quot;, blockStr);// 321</span><br><span class="line">    &#125;;</span><br><span class="line">    blockB();</span><br><span class="line">    NSLog(@&quot;%@&quot;, str);//1234</span><br><span class="line">    NSLog(@&quot;%@&quot;, blockStr);//321</span><br><span class="line">    </span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line"></span><br><span class="line">    NSMutableString *str = ((NSMutableString *(*)(id, SEL, NSString *, ...))(void *)objc_msgSend)((id)objc_getClass(&quot;NSMutableString&quot;), sel_registerName(&quot;stringWithFormat:&quot;), (NSString *)&amp;__NSConstantStringImpl__var_folders_15_yqh06lds04g5mgfqn8x8s5k40000gn_T_main_9c0693_mi_0);</span><br><span class="line">    __attribute__((__blocks__(byref))) __Block_byref_blockStr_0 blockStr = &#123;(void*)0,(__Block_byref_blockStr_0 *)&amp;blockStr, 33554432, sizeof(__Block_byref_blockStr_0), __Block_byref_id_object_copy_131, __Block_byref_id_object_dispose_131, str&#125;;</span><br><span class="line">    void (*blockB)(void) = ((void (*)())&amp;__main_block_impl_0((void *)__main_block_func_0, &amp;__main_block_desc_0_DATA, (__Block_byref_blockStr_0 *)&amp;blockStr, 570425344));</span><br><span class="line">    ((void (*)(__block_impl *))((__block_impl *)blockB)-&gt;FuncPtr)((__block_impl *)blockB);</span><br><span class="line">    NSLog((NSString *)&amp;__NSConstantStringImpl__var_folders_15_yqh06lds04g5mgfqn8x8s5k40000gn_T_main_9c0693_mi_4, str);</span><br><span class="line">    NSLog((NSString *)&amp;__NSConstantStringImpl__var_folders_15_yqh06lds04g5mgfqn8x8s5k40000gn_T_main_9c0693_mi_5, (blockStr.__forwarding-&gt;blockStr));</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Block-捕获的普通变量"><a href="#Block-捕获的普通变量" class="headerlink" title="Block 捕获的普通变量"></a>Block 捕获的普通变量</h2><ol>
+<li>retain了block内引用的对象</li>
+<li>将源block中object的地址赋给了目标block中的object变量</li>
+</ol>
+<h2 id="关于一个Timer的问题"><a href="#关于一个Timer的问题" class="headerlink" title="关于一个Timer的问题"></a>关于一个Timer的问题</h2><p>Q: 如果寄希望在dealloc去invalidate timer只能循环引用了。<br>A: 为什么？因为runloop（强引用）timer, timer（强引用）self。这里有两个前提1是强引用一个weakSelf会使得引用计数+1（这就是什么你传一个weakSelf作为target也不行的原因），2invalidate会释放runloop对timer的持有，并释放对self的持有。<br>解决的方案有很多，但是目的只有一个就是适当的时间invalidate, 比如viewWillDisappear中。但是就想在dealloc中呢，那应该用一个Proxy对象，让timer(强引用)proxy,这样self中的dealloc就会执行.那么问题来了，为什么block中weakSelf就不会使得引用计数+1呢？strongSelf又在干什么呢？strongSelf是为了防止在Block执行过程中使用。在block中,block是对变量进行捕获,意思是对使用到的变量进行拷贝操作,注意是拷贝的不是对象,而是变量自身,拿上面的来说,block中只是对变量wself拷贝了一份,也就是说,block中也定义了一个weak对象,相当于,在block的内存区域中,定义了一个__weak blockWeak对象,然后执行了blockWeak = wself;注意到了没,这里并没有引起对象的持有量的变化,所以没有问题</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/28/OC之Block/" data-id="cjxpp24v5000acyz6exppoc6t" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-OC之Runtime" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/27/OC之Runtime/" class="article-date">
+  <time datetime="2017-09-27T01:57:01.000Z" itemprop="datePublished">2017-09-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/27/OC之Runtime/">OC之Runtime</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h2><p>做一个技术总结，总是零零散散的看到各种博客讲rumtime。其中不乏大牛讲的非常棒。但是自己不动手总是别人的，如何才能变成自己的呢，那就得自己捕鱼造轮子咯。</p>
+<p><a href="https://opensource.apple.com/tarballs/objc4/" target="_blank" rel="noopener">runtime源码</a></p>
+<h2 id="对象模型"><a href="#对象模型" class="headerlink" title="对象模型"></a>对象模型</h2><p>在OC中什么是对象（喂，我不是故意的好嘛！）。有isa指针的都是对象，这里的isa其实是is a pointer的简写，它指向他的Class。</p>
+<p>首先在源码中，objc-private.h 文件中。<br>line-51，我发现了两个经常使用的Class和id的申明，熟悉c++的朋友，应该能区分申明（declaration）和定义（definition）。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">objc_class</span> *<span class="title">Class</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">objc_object</span> *<span class="title">id</span>;</span></span><br></pre></td></tr></table></figure>
+<p>按住CMD点击跳转到objc_object的declaration处，同文件line-168，我们可以看到objc_object的本质是一个结构体，并且它只有一个私有成员isa，当然还包含许多的方法。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">objc_object</span> &#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">isa_t</span> isa;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    ...</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    ...</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>同样的方式，我们在objc-runtime-new.h，line-1060，我们可以看到objc_class的definition，它是继承自objc_object的。<em>注意（敲黑板）</em>其实类也是一个对象！</p>
+<ol>
+<li>当我们调用某一个对象的instance方法的时候，它会通过它的isa找到它的Class, 并在方法列表中查找。（当然找不到的话，还会super Class，最后还有消息转发机制，以后再聊）</li>
+<li>当我们调用一个类的Class方法的时候，它会通过它的isa找到它的MetaClass, 并在方法列表中查找。</li>
+<li>MetaClass的isa指向哪里呢？指向RootMetaClass。what❓感觉是无穷无尽的。别着急，其实在OC中有两个RootClass, 一个是NSObject（另一个是NSProxy以后再聊)，它的isa其实就是RootMetaClass, 它的super指向nil。 RootMetaClass的isa指向自己，它的super指向NSObject。至此形成了一个完整的结构。</li>
+</ol>
+<p>盗一张经典图。</p>
+<img src="/2017/09/27/OC之Runtime/object_model.png">
+<p>对象的内存模型是啥样的呢？<br>对象成员变量从根类开始依次排列（isa就是根类NSObject的成员变量，也就是指向对象的类）</p>
+<p>方法调用的原理，isa指针在方法表中寻找，优化先找cache</p>
+<h2 id="Category-和-Associated-Objects"><a href="#Category-和-Associated-Objects" class="headerlink" title="Category 和 Associated Objects"></a>Category 和 Associated Objects</h2><h3 id="Category"><a href="#Category" class="headerlink" title="Category"></a>Category</h3><p>使用场景</p>
+<ol>
+<li>给现有的类添加方法</li>
+<li>将一个类的实现，拆分成多个独立的文件。（这点对比Swift的extension）</li>
+</ol>
+<p>其实现原理，第一步为目标Class注册category, 第二步重建Class的方法列表<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> _read_images(header_info **hList, <span class="keyword">uint32_t</span> hCount, <span class="keyword">int</span> totalClasses, <span class="keyword">int</span> unoptimizedTotalClasses);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">remethodizeClass</span><span class="params">(Class cls)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">attachCategories</span><span class="params">(Class cls, category_list *cats, <span class="keyword">bool</span> flush_caches)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!cats) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">if</span> (PrintReplacedMethods) printReplacements(cls, cats);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">bool</span> isMeta = cls-&gt;isMetaClass();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// fixme rearrange to remove these intermediate allocations</span></span><br><span class="line">    <span class="keyword">method_list_t</span> **mlists = (<span class="keyword">method_list_t</span> **)                 <span class="comment">//注意此处是一个二级指针，它指向一个方法，属性，协议列表的指针，分配count个指针的大小空间</span></span><br><span class="line">        <span class="built_in">malloc</span>(cats-&gt;count * <span class="keyword">sizeof</span>(*mlists));                  <span class="comment">//使得每一个category文件方法，属性，协议在一个二级指针下。</span></span><br><span class="line">    <span class="keyword">property_list_t</span> **proplists = (<span class="keyword">property_list_t</span> **)</span><br><span class="line">        <span class="built_in">malloc</span>(cats-&gt;count * <span class="keyword">sizeof</span>(*proplists));</span><br><span class="line">    <span class="keyword">protocol_list_t</span> **protolists = (<span class="keyword">protocol_list_t</span> **)</span><br><span class="line">        <span class="built_in">malloc</span>(cats-&gt;count * <span class="keyword">sizeof</span>(*protolists));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Count backwards through cats to get newest categories first</span></span><br><span class="line">    <span class="keyword">int</span> mcount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> propcount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> protocount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> i = cats-&gt;count;</span><br><span class="line">    <span class="keyword">bool</span> fromBundle = NO;</span><br><span class="line">    <span class="keyword">while</span> (i--) &#123;                                               <span class="comment">//0. 反向构建。新的categories在最前面。（这个顺序和Build Phases中的Compile Source中的顺序有关）</span></span><br><span class="line">        <span class="keyword">auto</span>&amp; entry = cats-&gt;<span class="built_in">list</span>[i];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">method_list_t</span> *mlist = entry.cat-&gt;methodsForMeta(isMeta);</span><br><span class="line">        <span class="keyword">if</span> (mlist) &#123;</span><br><span class="line">            mlists[mcount++] = mlist;                           <span class="comment">//1. 加到方法列表中，构建mlists包含所有category的方法</span></span><br><span class="line">            fromBundle |= entry.hi-&gt;isBundle();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">property_list_t</span> *proplist = </span><br><span class="line">            entry.cat-&gt;propertiesForMeta(isMeta, entry.hi);</span><br><span class="line">        <span class="keyword">if</span> (proplist) &#123;</span><br><span class="line">            proplists[propcount++] = proplist;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">protocol_list_t</span> *protolist = entry.cat-&gt;protocols;</span><br><span class="line">        <span class="keyword">if</span> (protolist) &#123;</span><br><span class="line">            protolists[protocount++] = protolist;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">auto</span> rw = cls-&gt;data();</span><br><span class="line"></span><br><span class="line">    prepareMethodLists(cls, mlists, mcount, NO, fromBundle);</span><br><span class="line">    rw-&gt;methods.attachLists(mlists, mcount);                    <span class="comment">//2. 添加到方法列表中去</span></span><br><span class="line">    <span class="built_in">free</span>(mlists);</span><br><span class="line">    <span class="keyword">if</span> (flush_caches  &amp;&amp;  mcount &gt; <span class="number">0</span>) flushCaches(cls);</span><br><span class="line"></span><br><span class="line">    rw-&gt;properties.attachLists(proplists, propcount);</span><br><span class="line">    <span class="built_in">free</span>(proplists);</span><br><span class="line"></span><br><span class="line">    rw-&gt;protocols.attachLists(protolists, protocount);</span><br><span class="line">    <span class="built_in">free</span>(protolists);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">attachLists</span><span class="params">(List* <span class="keyword">const</span> * addedLists, <span class="keyword">uint32_t</span> addedCount)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (addedCount == <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (hasArray()) &#123;                      <span class="comment">// 3** 已经存在list了，list.count &gt; 1</span></span><br><span class="line">        <span class="comment">// many lists -&gt; many lists</span></span><br><span class="line">        <span class="keyword">uint32_t</span> oldCount = <span class="built_in">array</span>()-&gt;count;</span><br><span class="line">        <span class="keyword">uint32_t</span> newCount = oldCount + addedCount;</span><br><span class="line">        setArray((<span class="keyword">array_t</span> *)<span class="built_in">realloc</span>(<span class="built_in">array</span>(), <span class="keyword">array_t</span>::byteSize(newCount)));</span><br><span class="line">        <span class="built_in">array</span>()-&gt;count = newCount;</span><br><span class="line">        memmove(<span class="built_in">array</span>()-&gt;lists + addedCount, <span class="built_in">array</span>()-&gt;lists, </span><br><span class="line">                oldCount * <span class="keyword">sizeof</span>(<span class="built_in">array</span>()-&gt;lists[<span class="number">0</span>]));          <span class="comment">//3. 往后挪动增加方法的位置。</span></span><br><span class="line">        <span class="built_in">memcpy</span>(<span class="built_in">array</span>()-&gt;lists, addedLists, </span><br><span class="line">                addedCount * <span class="keyword">sizeof</span>(<span class="built_in">array</span>()-&gt;lists[<span class="number">0</span>]));        <span class="comment">//4. 将增加的方法添加到最前面。</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">list</span>  &amp;&amp;  addedCount == <span class="number">1</span>) &#123; <span class="comment">// 1** 之前没有list, 并且添加数目为1</span></span><br><span class="line">        <span class="comment">// 0 lists -&gt; 1 list</span></span><br><span class="line">        <span class="built_in">list</span> = addedLists[<span class="number">0</span>];</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">else</span> &#123;                                 <span class="comment">// 2** 没有list或者list.count = 1</span></span><br><span class="line">        <span class="comment">// 1 list -&gt; many lists</span></span><br><span class="line">        List* oldList = <span class="built_in">list</span>;</span><br><span class="line">        <span class="keyword">uint32_t</span> oldCount = oldList ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">uint32_t</span> newCount = oldCount + addedCount;</span><br><span class="line">        setArray((<span class="keyword">array_t</span> *)<span class="built_in">malloc</span>(<span class="keyword">array_t</span>::byteSize(newCount)));<span class="comment">//5. 分配新数目的空间</span></span><br><span class="line">        <span class="built_in">array</span>()-&gt;count = newCount;</span><br><span class="line">        <span class="keyword">if</span> (oldList) <span class="built_in">array</span>()-&gt;lists[addedCount] = oldList;      <span class="comment">//6. 如果有一个方法则移动到最后去</span></span><br><span class="line">        <span class="built_in">memcpy</span>(<span class="built_in">array</span>()-&gt;lists, addedLists,                      <span class="comment">//7. 将添加的方法内存copy到最前面去</span></span><br><span class="line">                addedCount * <span class="keyword">sizeof</span>(<span class="built_in">array</span>()-&gt;lists[<span class="number">0</span>]));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Associated-Objects"><a href="#Associated-Objects" class="headerlink" title="Associated Objects"></a>Associated Objects</h3><p>为什么需要使用AssociatedObjects,因为Class的实例变量一旦确定就不能再添加了。</p>
+<p>它最主要也是用来实现这个功能，为现有的类添加公有属性。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_setAssociatedObject</span><span class="params">(id object, <span class="keyword">const</span> <span class="keyword">void</span> *key, id value, objc_AssociationPolicy policy)</span></span>;</span><br><span class="line"><span class="function">id <span class="title">objc_getAssociatedObject</span><span class="params">(id object, <span class="keyword">const</span> <span class="keyword">void</span> *key)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_removeAssociatedObjects</span><span class="params">(id object)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>第一个参数是目标对象<br>第二个参数是key, 对象级别的常量<br>第三个参数是需要添加的属性<br>第四个参数是关联策略，命名已经很清晰了。</p>
+<p>关联对象与被关联对象本身的存储并没有直接的关系，它是存储在单独的哈希表中的</p>
+<h2 id="load、initialize-和-Method-Swizzling"><a href="#load、initialize-和-Method-Swizzling" class="headerlink" title="load、initialize 和 Method Swizzling"></a>load、initialize 和 Method Swizzling</h2><h3 id="load"><a href="#load" class="headerlink" title="load"></a>load</h3><p>load方法的调用顺序是，先super,再child,最后再category。下面的递归是为了super和child的顺序，在调用的时候最后会调用category的load</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">schedule_class_load</span><span class="params">(Class cls)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls) <span class="keyword">return</span>;</span><br><span class="line">    assert(cls-&gt;isRealized());  <span class="comment">// _read_images should realize</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (cls-&gt;data()-&gt;flags &amp; RW_LOADED) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Ensure superclass-first ordering</span></span><br><span class="line">    schedule_class_load(cls-&gt;superclass);</span><br><span class="line"></span><br><span class="line">    add_class_to_loadable_list(cls);</span><br><span class="line">    cls-&gt;setInfo(RW_LOADED);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="initialize"><a href="#initialize" class="headerlink" title="initialize"></a>initialize</h3><p>initialize是类或者它的子类收到第一条消息的时候调用的。也就是说它是懒加载的，它是走的消息流程objc_msgSend。<br>可以用来初始化一些静态变量（使用不是很多啊）。</p>
+<h3 id="MethodSwizzling"><a href="#MethodSwizzling" class="headerlink" title="MethodSwizzling"></a>MethodSwizzling</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">+ (void)load &#123;                              // 1.当类加载到runtime的时候</span><br><span class="line">    static dispatch_once_t onceToken;</span><br><span class="line">    dispatch_once(&amp;onceToken, ^&#123;            // 2.保证只执行一次</span><br><span class="line">        Class class = [self class];</span><br><span class="line">        //3. SEL结构。 typedef struct objc_selector *SEL; 我的理解就是一个字符串。</span><br><span class="line">        //4. Method结构。 typedef struct method_t *Method; struct method_t &#123; SEL name, const char * types, IMP imp &#125;;</span><br><span class="line">        SEL originalSelector = @selector(viewWillAppear:);  // 5. 获取目标方法的SEL</span><br><span class="line">        SEL swizzledSelector = @selector(xxx_viewWillAppear:);// 6. 获取替换的方法的SEL</span><br><span class="line">        </span><br><span class="line">        Method originalMethod = class_getInstanceMethod(class, originalSelector); // 7. 获取目标方法的Method.</span><br><span class="line">        Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector); // 8. 获取替换方法的Method。</span><br><span class="line">        // 9.找到的originalSelector可能是父类的实现，子类根本没有实现</span><br><span class="line">        // 10.当前类没有此方法，originalMethod是父类的。 didAddMethod === true，去replace。</span><br><span class="line">        // 11.当前类有此方法，originalMethod是自身的。 didAddMethod === false，直接exchangeImp。</span><br><span class="line">        BOOL didAddMethod =</span><br><span class="line">            class_addMethod(class,</span><br><span class="line">                originalSelector,</span><br><span class="line">                method_getImplementation(swizzledMethod),</span><br><span class="line">                method_getTypeEncoding(swizzledMethod));        // 12.给当前类目标SEL增加一个替换IMP</span><br><span class="line">        if (didAddMethod) &#123;                                     // 13. 若添加成功了，再把替换SEL换成目标的方法</span><br><span class="line">            class_replaceMethod(class,</span><br><span class="line">                swizzledSelector,</span><br><span class="line">                method_getImplementation(originalMethod),</span><br><span class="line">                method_getTypeEncoding(originalMethod));</span><br><span class="line">        &#125; else &#123;                                                // 13. 若添加不成功，直接交换两个的实现。</span><br><span class="line">            method_exchangeImplementations(originalMethod, swizzledMethod);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)xxx_viewWillAppear:(BOOL)animated &#123;</span><br><span class="line">    [self xxx_viewWillAppear:animated];                         // 14. 为什么是个递归呢，其实内部的调用，已经是替换过的了。</span><br><span class="line">    NSLog(@&quot;viewWillAppear: %@&quot;, self);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Autorelease-Pool和-runloop"><a href="#Autorelease-Pool和-runloop" class="headerlink" title="Autorelease Pool和 runloop"></a>Autorelease Pool和 runloop</h2><p>Autorelease对象什么时候释放？<br>在没有手动Autorelease Pool的情况下，它是在runloop迭代结束的时候释放。</p>
+<h3 id="AutoreleasePoolPage"><a href="#AutoreleasePoolPage" class="headerlink" title="AutoreleasePoolPage"></a>AutoreleasePoolPage</h3><p>AutoreleasePool是一个由AutoreleasePoolPage为节点组成的双向链表。分配4096的空间，除了自身占用一部分外，其他空间作为一个栈结构，存即将释放的对象指针。</p>
+<p>objc_autoreleasePoolPush 在page中添加一个哨兵对象，返回这个哨兵对象的地址context。<br>objc_autoreleasePoolPop(context), 根据哨兵对象，哨兵之后的统一发release消息。反过来一直清理至哨兵。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> id *<span class="title">autoreleaseFast</span><span class="params">(id obj)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    AutoreleasePoolPage *page = hotPage();</span><br><span class="line">    <span class="keyword">if</span> (page &amp;&amp; !page-&gt;full()) &#123;</span><br><span class="line">        <span class="keyword">return</span> page-&gt;add(obj);                  <span class="comment">//page中直接加入</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (page) &#123;</span><br><span class="line">        <span class="keyword">return</span> autoreleaseFullPage(obj, page);  <span class="comment">//新建一个page</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> autoreleaseNoPage(obj);          <span class="comment">//初始化一个page</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="runloop"><a href="#runloop" class="headerlink" title="runloop"></a>runloop</h3><p>在主线程的runloop中，每一个eventloop开始前，系统会自动创建一个autoreleasepool,并且eventloop结束是drain。每个autoreleasepoll对应一个线程。</p>
+<h2 id="KVO和KVC"><a href="#KVO和KVC" class="headerlink" title="KVO和KVC"></a>KVO和KVC</h2><h3 id="KVO的原理"><a href="#KVO的原理" class="headerlink" title="KVO的原理"></a>KVO的原理</h3><ol>
+<li>当一个object有观察者时，动态创建这个object的类的子类</li>
+<li>对于每个被观察的property，重写其set方法</li>
+<li>在重写的set方法中调用- willChangeValueForKey:和- didChangeValueForKey:通知观察者</li>
+<li>当一个property没有观察者时，删除重写的方法</li>
+<li>当没有observer观察任何一个property时，删除动态创建的子类</li>
+</ol>
+<p>因此，要想KVO生效，必须直接或间接的通过setter方法访问属性（KVC的setValue就是间接方式）。直接访问成员变量KVO是不生效的。</p>
+<p>直接访问成员变量，并希望触发。则通过在赋值前后手动调用这些方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- (void)willChangeValueForKey:(NSString *)key;</span><br><span class="line">- (void)didChangeValueForKey:(NSString *)key;</span><br></pre></td></tr></table></figure>
+<h3 id="KVC"><a href="#KVC" class="headerlink" title="KVC"></a>KVC</h3><p>KVO是基于KVC实现的</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/27/OC之Runtime/" data-id="cjxpp24w2000wcyz62i4b3h1b" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    <a class="extend prev" rel="prev" href="/page/2/">&laquo; __('prev')</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">__('next') &raquo;</a>
+  </nav>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

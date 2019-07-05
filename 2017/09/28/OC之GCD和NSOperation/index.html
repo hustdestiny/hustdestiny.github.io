@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>OC之GCD和NSOperation | Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="区别和优势控制并发数、取消、添加依赖关系等需要使用 NSOperation Queue。可复用性高的任务建议使用 NSOperation 实现。 对于简单的任务使用 GCD 即可 同步异步dispatch_syncdispatch_async 串行并行串行表示一次只能执行一个任务，只有当前一个任务完成后才启动下一个任务，而并行指可以同时执行多个任务。常见于GCD的串行和并发队列。 NSOperat">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OC之GCD和NSOperation">
+<meta property="og:url" content="http://yoursite.com/2017/09/28/OC之GCD和NSOperation/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="区别和优势控制并发数、取消、添加依赖关系等需要使用 NSOperation Queue。可复用性高的任务建议使用 NSOperation 实现。 对于简单的任务使用 GCD 即可 同步异步dispatch_syncdispatch_async 串行并行串行表示一次只能执行一个任务，只有当前一个任务完成后才启动下一个任务，而并行指可以同时执行多个任务。常见于GCD的串行和并发队列。 NSOperat">
+<meta property="og:updated_time" content="2017-10-10T07:36:53.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="OC之GCD和NSOperation">
+<meta name="twitter:description" content="区别和优势控制并发数、取消、添加依赖关系等需要使用 NSOperation Queue。可复用性高的任务建议使用 NSOperation 实现。 对于简单的任务使用 GCD 即可 同步异步dispatch_syncdispatch_async 串行并行串行表示一次只能执行一个任务，只有当前一个任务完成后才启动下一个任务，而并行指可以同时执行多个任务。常见于GCD的串行和并发队列。 NSOperat">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-OC之GCD和NSOperation" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/28/OC之GCD和NSOperation/" class="article-date">
+  <time datetime="2017-09-28T05:44:57.000Z" itemprop="datePublished">2017-09-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      OC之GCD和NSOperation
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="区别和优势"><a href="#区别和优势" class="headerlink" title="区别和优势"></a>区别和优势</h2><p>控制并发数、取消、添加依赖关系等需要使用 NSOperation Queue。<br>可复用性高的任务建议使用 NSOperation 实现。</p>
+<p>对于简单的任务使用 GCD 即可</p>
+<h2 id="同步异步"><a href="#同步异步" class="headerlink" title="同步异步"></a>同步异步</h2><p>dispatch_sync<br>dispatch_async</p>
+<h2 id="串行并行"><a href="#串行并行" class="headerlink" title="串行并行"></a>串行并行</h2><p>串行表示一次只能执行一个任务，只有当前一个任务完成后才启动下一个任务，而并行指可以同时执行多个任务。<br>常见于GCD的串行和并发队列。</p>
+<h2 id="NSOperation-抽象类"><a href="#NSOperation-抽象类" class="headerlink" title="NSOperation(抽象类)"></a>NSOperation(抽象类)</h2><p>main<br>start<br>cancel<br>ready<br>asynchronous</p>
+<p>NSBlockOperation<br>NSInvocationOperation</p>
+<h3 id="自定义-并发的-NSOperation"><a href="#自定义-并发的-NSOperation" class="headerlink" title="自定义 并发的 NSOperation"></a>自定义 并发的 NSOperation</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">- (void)setFinished:(BOOL)finished &#123; // 手动触发KVO</span><br><span class="line">    [self willChangeValueForKey:@&quot;isFinished&quot;];</span><br><span class="line">    _finished = finished;</span><br><span class="line">    [self didChangeValueForKey:@&quot;isFinished&quot;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)setExecuting:(BOOL)executing &#123;</span><br><span class="line">    [self willChangeValueForKey:@&quot;isExecuting&quot;];</span><br><span class="line">    _executing = executing;</span><br><span class="line">    [self didChangeValueForKey:@&quot;isExecuting&quot;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (BOOL)isConcurrent &#123;// 一直返回YES，表示并发的NSOperation</span><br><span class="line">    return YES;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="NSOperationQueue"><a href="#NSOperationQueue" class="headerlink" title="NSOperationQueue"></a>NSOperationQueue</h2><h2 id="GCD"><a href="#GCD" class="headerlink" title="GCD"></a>GCD</h2><ol>
+<li><p>同步异步函数<br>dispatch_sync<br>dispatch_async</p>
+</li>
+<li><p>延迟函数<br>dispatch_after</p>
+</li>
+<li><p>一次性函数<br>dispatch_once</p>
+</li>
+<li><p>信号量<br>dispatch_semaphore_t semaphore = dispatch_semaphore_create(10); //资源数是10, 为0没有资源<br>dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);      //semaphore–<br>dispatch_semaphore_signal(semaphore);                           //semaphore++</p>
+</li>
+<li><p>group<br>dispatch_group_t<br>dispatch_group_notify</p>
+</li>
+<li><p>循环和栅栏<br>dispatch_apply //同步函数，重复执行。会阻塞当前线程直到所有循环迭代执行完成<br>dispatch_barrier_async// 栅栏函数，用于同步。</p>
+</li>
+<li><p>GCD的timer</p>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/28/OC之GCD和NSOperation/" data-id="cjxpp24v9000bcyz6t7sqbn3e" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/09/28/OC之消息与转发/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          OC之消息与转发
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/09/28/OC之Runloop/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">OC之Runloop</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

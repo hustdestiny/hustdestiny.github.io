@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>CoreAnimation学习笔记 | Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="刚刚加入到一个新的团队，接到的第一个任务便是一个动画的需求，自然不能怠慢。之前的工作中对iOS的动画掌握仅仅限于UIView的Block动画，实在是惭愧，不如就这个机会好好研究一下这个CoreAnimation,于是才有这个笔记。搜索了一下资源，好评较高的是这个github的开源书籍iOS-Core-Animation-Advanced-Techniques。 首先来了解一下基础知识。CoreAn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CoreAnimation学习笔记">
+<meta property="og:url" content="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="刚刚加入到一个新的团队，接到的第一个任务便是一个动画的需求，自然不能怠慢。之前的工作中对iOS的动画掌握仅仅限于UIView的Block动画，实在是惭愧，不如就这个机会好好研究一下这个CoreAnimation,于是才有这个笔记。搜索了一下资源，好评较高的是这个github的开源书籍iOS-Core-Animation-Advanced-Techniques。 首先来了解一下基础知识。CoreAn">
+<meta property="og:updated_time" content="2019-01-29T02:46:03.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CoreAnimation学习笔记">
+<meta name="twitter:description" content="刚刚加入到一个新的团队，接到的第一个任务便是一个动画的需求，自然不能怠慢。之前的工作中对iOS的动画掌握仅仅限于UIView的Block动画，实在是惭愧，不如就这个机会好好研究一下这个CoreAnimation,于是才有这个笔记。搜索了一下资源，好评较高的是这个github的开源书籍iOS-Core-Animation-Advanced-Techniques。 首先来了解一下基础知识。CoreAn">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-CoreAnimation学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/28/CoreAnimation学习笔记/" class="article-date">
+  <time datetime="2018-02-28T01:15:51.000Z" itemprop="datePublished">2018-02-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      CoreAnimation学习笔记
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>刚刚加入到一个新的团队，接到的第一个任务便是一个动画的需求，自然不能怠慢。之前的工作中对iOS的动画掌握仅仅限于UIView的Block动画，实在是惭愧，不如就这个机会好好研究一下这个CoreAnimation,于是才有这个笔记。搜索了一下资源，好评较高的是这个github的开源书籍<a href="https://github.com/AttackOnDobby/iOS-Core-Animation-Advanced-Techniques" target="_blank" rel="noopener">iOS-Core-Animation-Advanced-Techniques</a>。</p>
+<p>首先来了解一下基础知识。CoreAnimation并不仅仅是动画，What? 我这么多年的英语白学了么，且往下看。</p>
+<h2 id="UIView和CALayer"><a href="#UIView和CALayer" class="headerlink" title="UIView和CALayer"></a>UIView和CALayer</h2><p>UIView再熟悉不过啦，CALayer也许没那么熟，但是cornerRadius,borderWidth,borderColor等属性相比没有少用吧。看到CALayer这个名字，你应该会想到点什么对吧，没错前缀CA就是CoreAnimation的意思。那么下面是一道面试题，讲讲它们的关系。每一个UIView都有一个layer属性，这才是他显示的原因，CALayer并不知道响应链的存在，而且缺乏Autolayout的支持。但是为什么要分成两部分，主要是为了代码的复用，因为MacOS的显示也是CALayer, 但是鼠标、键盘的响应处理，却是截然不同的逻辑。UIView对CALayer进行了简单的封装，包含了大部分基础的属性。frame bounds center clipToBounds ==&gt; frame bounds position maskToBounds等等，但也不是全部，比如cornerRadius,shadowPath，还有一些别的没有暴露出来。学习CALayer是有必要的。一定程度上来说CALayer更轻量级，性能会有提高。（但是绝大部分还是UIView更合适，至少AutoLayout就已经让人无法拒绝了）</p>
+<h2 id="CALayer的属性简单讲解"><a href="#CALayer的属性简单讲解" class="headerlink" title="CALayer的属性简单讲解"></a>CALayer的属性简单讲解</h2><ol>
+<li>contents         id类型，但是只在iOS上只有传入一个CGImageRef类型的图片才会有显示</li>
+<li>contentGravity   对应图片的显示模式，有点对应UIView的ContentMode</li>
+<li>contentsScale    定义了寄宿图的像素尺寸和视图大小的比例</li>
+<li>maskToBounds     对应于UIView的ClipToBounds</li>
+<li>contentsRect     一般用于显示精灵图</li>
+<li><p>contentsCenter   规定拉伸区域</p>
+</li>
+<li><p>frame            外部坐标, 是由bounds,position,transform计算而来的</p>
+</li>
+<li>bounds           内部坐标</li>
+<li>position         锚点相对于父layer位置</li>
+<li>transform</li>
+<li>anchorPoint     默认位于layer的中心{0.5, 0.5}，相对坐标，可改变</li>
+<li>zPosition       float控制上下顺序</li>
+</ol>
+<p>虽然CALayer不能处理事件，但是却提供了两个帮助处理的方法</p>
+<ol>
+<li>containsPoint</li>
+<li><p>hitTest    </p>
+</li>
+<li><p>cornerRadius</p>
+</li>
+<li>borderWidth</li>
+<li>borderColor</li>
+<li>shadowColor,shadowOffset,shadowRadius</li>
+<li>shadowPath</li>
+<li>mask            mask不透明的地方就是保留下来的值</li>
+<li>opacity         对应UIView的Alpha</li>
+<li>shouldRasterize 栅格化</li>
+</ol>
+<h2 id="专有图层"><a href="#专有图层" class="headerlink" title="专有图层"></a>专有图层</h2><ol>
+<li>CAShapeLayer</li>
+<li>CATextLayer</li>
+<li>CATransformLayer</li>
+<li>CAGradientLayer</li>
+<li>CAReplicatorLayer</li>
+<li>CAScrollLayer</li>
+<li>CATiledLayer</li>
+<li>CAEmitterLayer</li>
+<li>CAEAGLLayer</li>
+<li>AVPlayerLayer</li>
+</ol>
+<h2 id="隐式动画"><a href="#隐式动画" class="headerlink" title="隐式动画"></a>隐式动画</h2><p>改变CALayer一个可做动画的属性时，属性会从先前的值平滑过渡到新的值，这一切都会默认行为。<br>CoreAnimation在每个runloop自动开始一次新的事务CATransaction。</p>
+<p>CATransaction通过入栈出栈的方式工作，可以设置时间和完成后的任务。<br>begin<br>setAnimationDuration<br>setCompletionBlock<br>commit</p>
+<p>隐身动画不能对UIView的关联图层起作用，那是如何禁用的呢？<br>-actionForKey: 主要是调用这个方法，以及内部的一系列方法。返回nil,则没有动画，返回CAAction协议对象，CALayer去做动画。<br>所以UIView其实就是layer的Delegate, 并且提供了-actionForLayer:forKey的实现方法。当不在一个动画块的实现中，UIView对所有图层行为返回nil，但是在动画block范围之内，它就返回了一个非空值。</p>
+<p>除此之外也可以通过setDisableActions，禁用隐式动画。</p>
+<p>当设置属性的时候改变的是模型图层，动画中看到的是呈现图层。<br>presentationLayer<br>modelLayer</p>
+<h2 id="显式动画"><a href="#显式动画" class="headerlink" title="显式动画"></a>显式动画</h2><p>能够对一些属性做指定的自定义动画，或者创建非线性动画，比如沿着任意一条曲线移动。</p>
+<h3 id="属性动画"><a href="#属性动画" class="headerlink" title="属性动画"></a>属性动画</h3><p>CAAnimation –&gt; CAPropertyAnimation –&gt; CABasicAnimation</p>
+<p>id fromValue<br>id toValue<br>id byValue</p>
+<p>动画很常见的问题是，动画结束之后又立刻变回原始值。这是因为动画并没有改变图层模型。所以我们需要在动画开始之前或者之后改变属性的值。</p>
+<p>动画之前：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">- (void)applyBasicAnimation:(CABasicAnimation *)animation toLayer:(CALayer *)layer</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    //set the from value (using presentation layer if available)</span><br><span class="line">    animation.fromValue = [(layer.presentationLayer ? layer.presentationLayer : layer) valueForKeyPath:animation.keyPath];</span><br><span class="line">    //update the property in advance</span><br><span class="line">    //note: this approach will only work if toValue != nil </span><br><span class="line">    [CATransaction begin];</span><br><span class="line">    [CATransaction setDisableActions:YES];</span><br><span class="line">    [layer setValue:animation.toValue forKeyPath:animation.keyPath];</span><br><span class="line">    [CATransaction commit];</span><br><span class="line">    //apply animation to layer</span><br><span class="line">    [layer addAnimation:animation forKey:nil];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>动画之后：</p>
+<p>-animationDidStop:finished:</p>
+<p>CAAnimation实现了KVC（键-值-编码）协议，于是你可以用-setValue:forKey:和-valueForKey:方法来存取属性。但是CAAnimation有一个与众不同的特性：它更像一个NSDictionary，可以让你随意设置键值对，即使和你使用的动画类所声明的属性并不匹配。</p>
+<h3 id="关键帧动画"><a href="#关键帧动画" class="headerlink" title="关键帧动画"></a>关键帧动画</h3><p>CAAnimation –&gt; CAPropertyAnimation –&gt; CAKeyframeAnimation</p>
+<p>values<br>path</p>
+<h3 id="动画组"><a href="#动画组" class="headerlink" title="动画组"></a>动画组</h3><p>CAAnimationGroup</p>
+<h2 id="过渡动画"><a href="#过渡动画" class="headerlink" title="过渡动画"></a>过渡动画</h2><p>CATransition</p>
+<h2 id="动画的时间"><a href="#动画的时间" class="headerlink" title="动画的时间"></a>动画的时间</h2><p>duration 默认0.25<br>repeatCount 默认1<br>repeatDuration 它让动画重复一个指定的时间，而不是指定次数。<br>autoreverses</p>
+<p>beginTime<br>speed<br>timeOffset</p>
+<p>fillMode</p>
+<h2 id="缓冲方程式"><a href="#缓冲方程式" class="headerlink" title="缓冲方程式"></a>缓冲方程式</h2><p>CAMediaTimingFunction timingFunctionWithName:   +functionWithControlPoints::::<br>timingFunctions 一个数组</p>
+<p>当一个复杂的缓冲出现的时候，并不能使用一个3次贝塞尔曲线描述，可以使用</p>
+<ol>
+<li>用CAKeyframeAnimation创建一个动画，然后分割成几个步骤，每个小步骤使用自己的计时函数</li>
+<li>使用定时器逐帧更新实现动画</li>
+</ol>
+<h2 id="CADisplayLink-NSTimer-NSRunloop"><a href="#CADisplayLink-NSTimer-NSRunloop" class="headerlink" title="CADisplayLink NSTimer NSRunloop"></a>CADisplayLink NSTimer NSRunloop</h2><h2 id="性能调优，CPU、GPU-高效绘图，图像IO-图层性能"><a href="#性能调优，CPU、GPU-高效绘图，图像IO-图层性能" class="headerlink" title="性能调优，CPU、GPU, 高效绘图，图像IO,图层性能"></a>性能调优，CPU、GPU, 高效绘图，图像IO,图层性能</h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/" data-id="cjxpp24ur0002cyz6gc7ybxmm" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/03/11/Autolayout学习笔记/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Autolayout学习笔记
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/02/27/AFNetworking学习笔记/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">AFNetworking学习笔记</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

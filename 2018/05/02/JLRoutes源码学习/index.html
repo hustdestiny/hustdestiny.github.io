@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>JLRoutes源码学习 | Destiny</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="之前也看过一些模块化的文章，围观过一些切磋。自己并没有实际的使用过，主流的框架是MGJRouter, CTMediator, JLRoutes。简单来说，我还是喜欢star比较多的项目（star党）。这里来学习一下项目中使用的JLRoutes框架，不知道为什么，总觉得在使用的时候总感觉怪怪的，今天就来读一下源码看看是否能解决一下心中疑惑。 首先这个库的目的是为了解决外部跳转到App内部的场景，打一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JLRoutes源码学习">
+<meta property="og:url" content="http://yoursite.com/2018/05/02/JLRoutes源码学习/index.html">
+<meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="之前也看过一些模块化的文章，围观过一些切磋。自己并没有实际的使用过，主流的框架是MGJRouter, CTMediator, JLRoutes。简单来说，我还是喜欢star比较多的项目（star党）。这里来学习一下项目中使用的JLRoutes框架，不知道为什么，总觉得在使用的时候总感觉怪怪的，今天就来读一下源码看看是否能解决一下心中疑惑。 首先这个库的目的是为了解决外部跳转到App内部的场景，打一">
+<meta property="og:updated_time" content="2018-05-03T09:31:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JLRoutes源码学习">
+<meta name="twitter:description" content="之前也看过一些模块化的文章，围观过一些切磋。自己并没有实际的使用过，主流的框架是MGJRouter, CTMediator, JLRoutes。简单来说，我还是喜欢star比较多的项目（star党）。这里来学习一下项目中使用的JLRoutes框架，不知道为什么，总觉得在使用的时候总感觉怪怪的，今天就来读一下源码看看是否能解决一下心中疑惑。 首先这个库的目的是为了解决外部跳转到App内部的场景，打一">
+  
+    <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Destiny</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-JLRoutes源码学习" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/02/JLRoutes源码学习/" class="article-date">
+  <time datetime="2018-05-02T09:21:46.000Z" itemprop="datePublished">2018-05-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      JLRoutes源码学习
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>之前也看过一些模块化的文章，围观过一些切磋。自己并没有实际的使用过，主流的框架是MGJRouter, CTMediator, JLRoutes。简单来说，我还是喜欢star比较多的项目（star党）。<br>这里来学习一下项目中使用的JLRoutes框架，不知道为什么，总觉得在使用的时候总感觉怪怪的，今天就来读一下源码看看是否能解决一下心中疑惑。</p>
+<p>首先这个库的目的是为了解决外部跳转到App内部的场景，打一个比方，在我们使用微信的分享的时候，我们直接跳转到了微信对应的页面，而不是仅仅进入到首页，然后需要我们手动点击跳转目标页面。那么怎么做到的呢？只有一个途径就是openurl的方式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary&lt;NSString *, id&gt; *)options</span><br></pre></td></tr></table></figure>
+<p>首先我们需要在我们的Info.plist中添加URL schemes。这样在iPhone的其他应用就可以通过这个schemes(注意这是一个数组，意思就是同一个app可以有多个scheme)识别需要打开的应用，然后跳转过去。比如在safari中直接输入，这个scheme下的url即可。那么问题来了，调用了系统的这个方法之后，怎么才能根据url跳转到对应的页面呢？就是下面的这一句代码了，这么厉害，一句搞定？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[JLRoutes routeURL:url];</span><br></pre></td></tr></table></figure>
+<p>非也非也。具体执行的时候还是需要先注册，再跳转。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (void)addRoute:(NSString *)routePattern handler:(BOOL (^)(NSDictionary&lt;NSString *, id&gt; *parameters))handlerBlock</span><br></pre></td></tr></table></figure>
+<p>这是注册的时候的一个入口函数，框架的demo,使用的是在didFinishLanuch中注册。个人觉得，放在module的load方法中注册应该会更好一些，更分散，而不是集中的一坨。这个方法最终会调用到下面这个方法。默认传了一个O的优先级而已。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (void)addRoute:(NSString *)routePattern priority:(NSUInteger)priority handler:(BOOL (^)(NSDictionary&lt;NSString *, id&gt; *parameters))handlerBlock</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建一个JLRRouteDefinition的对象，这其中包含了patter, priority,和handlerBlock</li>
+<li>register这个route, 会根据priority往mutableRoutes中添加route, 给route添加scheme</li>
+</ol>
+<p>前面注册就到此为止了<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)_routeURL:(NSURL *)URL withParameters:(NSDictionary *)parameters executeRouteBlock:(BOOL)executeRouteBlock;</span><br></pre></td></tr></table></figure></p>
+<ol>
+<li>参数检查</li>
+<li>根据url, options, parameters, 生成request对象</li>
+<li>遍历mutableRoutes, 检查route和request是否匹配，（各种循环，看晕了👀）</li>
+<li>匹配之后执行handlerBlock, 根据return值，决定是否需要继续遍历</li>
+</ol>
+<p>总结一下，本质上就是register 一个route 到 mutableRoutes的数组中，然后通过短链调用的时候生成request-&gt;response,然后遍历匹配mutableRoutes。代码清晰易读。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/05/02/JLRoutes源码学习/" data-id="cjxpp24v30009cyz6emx63zkr" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/05/09/ARKit学习笔记/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          ARKit学习笔记
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/04/28/YYModel源码学习/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">YYModel源码学习</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
+          </li>
+        
+          <li>
+            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/07/git-handbook/">git handbook</a>
+          </li>
+        
+          <li>
+            <a href="/2018/12/29/闲聊/">闲聊</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 hust_destiny<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
