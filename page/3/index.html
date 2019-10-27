@@ -61,6 +61,195 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-Autolayout学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/03/11/Autolayout学习笔记/" class="article-date">
+  <time datetime="2018-03-11T06:48:11.000Z" itemprop="datePublished">2018-03-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/11/Autolayout学习笔记/">Autolayout学习笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>首先说一下我个人的观点，80%业务UI应该以IB的形式，15%应该用Masnory的方式，5%使用frame。IB发展到目前的阶段，我觉得已经不存在什么多人协作的问题了，性能我觉得也不是App的瓶颈所在。问题可能在于某一些动态创建不是很好处理，或者是大量创建重复元素的时候（是不是应该使用UITableView或者UICollectionView呢）。在某一些动画的场合可能还是frame要好一些。</p>
+<ol>
+<li><p>Using Code<br>我想现在主体还是使用这种方式的同学，应该已经很少了，这种方式缺点和优点同样明显。在适配方面简直不可原谅，也许有一些别的方法可以缓解（比如定义一个宏，方法根据屏幕比列去做缩放）但是在apple爸爸已经提供了Autolayout的基础上何必逆流呢？但是有一些动画场景，比如涉及到CALayer的地方，没办法🤷‍♀️只能是frame了</p>
+</li>
+<li><p>Using PureLayout &amp; Masonry/SnapKit<br>这是我接触iOS一来使用的最久的方式，也是目前市面上的主流吧。前一个框架可能使用者少一些，后一个从github的star排名来说绝对是火爆。作为之前的纯代码党的我来说，这套方案比什么VFL靠谱很多，至少不会因为一个typo满世界找原因，相比之前冗长的代码来说，简直就是福音。曾经的我以为只有代码敲出来的才是最好的，感觉自己控制了所有的细节。可是有一天我累了，每当写起大段的UI代码的时候，头都是很疼的，因为还需要起名字。</p>
+</li>
+<li><p>Using Interface Builder<br>这是我最近在使用的方式，其实很早之前我就了解过这个方式，不过由于之前的团队成员不太赞成，我也没有强行使用。首先我觉得要拥抱变化拥抱新事物，虽然有缺点，但都不是致命的，优点在于可视化，表现力强，就算是个外行也能看懂，UI站在你身后都能跟你聊两句~~（向做一点…向右一点…</p>
+</li>
+</ol>
+<p>这里我还是主要说说2，3点吧<br>首先是Masonry<br>Masonry的代码写在哪里？文档说 mas_makeConstraints一系列方法写在updateConstraints这个方法中，但是要注意这个方法是会调用多次的，于是在Snapkit的demo中就会有一个标志位保证其只执行一次。而在Masonry的demo中View 都是现在init中，ViewController则是写在ViewDidLoad中。这点我个人也不是很确定，不过我现在是使用IB为主，我就不需要考虑写在哪里了✌️。</p>
+<p>然后就是IB<br>并不是用了IB就可以随便写了，好的层次结构不管使用frame masonry 还是IB 写出来都是好维护的，相反层次混乱思路不清晰就是一团糟，需要足够理解设计者的意图才能写好UI。</p>
+<p>-setNeedsUpdateConstraints<br>-setNeedsLayout<br>-setNeedsDisplay</p>
+<p>核心方法1</p>
+<ul>
+<li>(void)updateConstraints<br>如果你需要在button点击之后调整constraint那么一定要立刻更改，为了保证在同一个runloop中。<br>这其中对应了三个,xxxIfNeeded,setNeedsxxx,xxxSomething。其实ifNeeded才会立刻执行，Needsxxx是会收集然后一起执行（waits for the next update cycle），xxxSomething一般都不会主动去调用，只是用来重载。<br>我在文档最后看到一个important的提示，[super updateConstraints]要放在最后</li>
+</ul>
+<p>核心方法2</p>
+<ul>
+<li>(void)layoutSubviews;<br>赶在视图绘制出来之前抓紧重写一下这个方法</li>
+</ul>
+<p>核心方法3</p>
+<ul>
+<li>(void)drawRect:(CGRect)rect;<br>一般不需要重写这个方法。</li>
+</ul>
+<ol>
+<li>动态计算高度<br>在iOS中最多的地方其实就是Cell的自适应高度了，我来详细解释一下这个方式。<br>在iOS5以后的api中tableView多了一个UITableViewAutomaticDimension的常量，这个常量是-1。这个常量是rowHeight, estimatedRowHeight等一系列高度的默认值。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath;</span><br><span class="line">@property (nonatomic) CGFloat rowHeight;             // default is UITableViewAutomaticDimension</span><br><span class="line">@property (nonatomic) CGFloat estimatedRowHeight     // default is UITableViewAutomaticDimension, set to 0 to disable</span><br></pre></td></tr></table></figure>
+<p>当tableview 计算一个cell的高度的时候，首先回去检测是否实现了heightForRowAtIndexPath的方法，如果有则调用此方法<br>如果tableview没有实现heightForRowAtIndexPath的方法，就是rowHeight的作为高度。以上两种方式如果返回UITableViewAutomaticDimension，那么系统就会根据约束自己计算高度了。<br>estimatedRowHeight的设置要尽量接近真实的rowHeight, 不然主要是为了indicator会有跳动。</p>
+<p>那么我们在设置UITableViewAutomaticDimension的时候我们该怎么去做，约束怎么写呢？<br>答案就是：用约束去撑开cell！！！<br>如果在console会有一些警告，并且你确定你的约束写的没有问题的话，你可以将其中的一个高度相关的约束优先级设置成999即可</p>
+<ol>
+<li><p>如何布局<br>首先我们要理解UIView 可以类比为前端的div，他们都是轻量级的而且没有明确意义的。也就是说用它们容器使得层次更加清晰。好的层次绝对比建立一两个UIView要来的划算，不过最要命的还是命名。。</p>
+</li>
+<li><p>关于动态生成<br>这里说的是在TableViewCell中，如果有的内容时有时无，并不能通过简单显示隐藏来解决的话，那就直接拖动生成就显得力不从心了。这里我目前使用纯代码写约束解决的。如果有更好的方式请告诉我。</p>
+</li>
+<li><p>关于scrollView的autolayout这个在面试的时候也是经常被问到<br>除了设置常规的edges之后还需要设置contentView的宽高，使用这么一个contentView来撑开这个scrollView</p>
+</li>
+<li><p>在使用xib的过程中是否遇到过只是添加一个占位的UIView。<br>但是不设置宽高会有红红的警告，设置了宽高的话又会有问题（因为毕竟不是真实需要的宽高，真实需要的是根据数据生成的）。这是xib的约束有个Placeholder remove at build time的设置可以勾上，完美！</p>
+</li>
+<li><p>在使用UILabel的过程中有没有使用两个UILabel，当文字超长的时候挤压哪一个？当文字都短的时候拉伸哪一个？</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- (void)setContentHuggingPriority:(UILayoutPriority)priority forAxis:(UILayoutConstraintAxis)axis;</span><br><span class="line">- (void)setContentCompressionResistancePriority:(UILayoutPriority)priority forAxis:(UILayoutConstraintAxis)axis;</span><br></pre></td></tr></table></figure>
+<p>对于UILabel来说HuggingPriority默认是251被拉伸的难易度，CompressionResistancePriority默认是750被压缩的难易度，数值越大代表越稳定越不容易变化。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/03/11/Autolayout学习笔记/" data-id="ck28skzpm00000cz6936lpb0x" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-CoreAnimation学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/02/28/CoreAnimation学习笔记/" class="article-date">
+  <time datetime="2018-02-28T01:15:51.000Z" itemprop="datePublished">2018-02-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/02/28/CoreAnimation学习笔记/">CoreAnimation学习笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>刚刚加入到一个新的团队，接到的第一个任务便是一个动画的需求，自然不能怠慢。之前的工作中对iOS的动画掌握仅仅限于UIView的Block动画，实在是惭愧，不如就这个机会好好研究一下这个CoreAnimation,于是才有这个笔记。搜索了一下资源，好评较高的是这个github的开源书籍<a href="https://github.com/AttackOnDobby/iOS-Core-Animation-Advanced-Techniques" target="_blank" rel="noopener">iOS-Core-Animation-Advanced-Techniques</a>。</p>
+<p>首先来了解一下基础知识。CoreAnimation并不仅仅是动画，What? 我这么多年的英语白学了么，且往下看。</p>
+<h2 id="UIView和CALayer"><a href="#UIView和CALayer" class="headerlink" title="UIView和CALayer"></a>UIView和CALayer</h2><p>UIView再熟悉不过啦，CALayer也许没那么熟，但是cornerRadius,borderWidth,borderColor等属性相比没有少用吧。看到CALayer这个名字，你应该会想到点什么对吧，没错前缀CA就是CoreAnimation的意思。那么下面是一道面试题，讲讲它们的关系。每一个UIView都有一个layer属性，这才是他显示的原因，CALayer并不知道响应链的存在，而且缺乏Autolayout的支持。但是为什么要分成两部分，主要是为了代码的复用，因为MacOS的显示也是CALayer, 但是鼠标、键盘的响应处理，却是截然不同的逻辑。UIView对CALayer进行了简单的封装，包含了大部分基础的属性。frame bounds center clipToBounds ==&gt; frame bounds position maskToBounds等等，但也不是全部，比如cornerRadius,shadowPath，还有一些别的没有暴露出来。学习CALayer是有必要的。一定程度上来说CALayer更轻量级，性能会有提高。（但是绝大部分还是UIView更合适，至少AutoLayout就已经让人无法拒绝了）</p>
+<h2 id="CALayer的属性简单讲解"><a href="#CALayer的属性简单讲解" class="headerlink" title="CALayer的属性简单讲解"></a>CALayer的属性简单讲解</h2><ol>
+<li>contents         id类型，但是只在iOS上只有传入一个CGImageRef类型的图片才会有显示</li>
+<li>contentGravity   对应图片的显示模式，有点对应UIView的ContentMode</li>
+<li>contentsScale    定义了寄宿图的像素尺寸和视图大小的比例</li>
+<li>maskToBounds     对应于UIView的ClipToBounds</li>
+<li>contentsRect     一般用于显示精灵图</li>
+<li><p>contentsCenter   规定拉伸区域</p>
+</li>
+<li><p>frame            外部坐标, 是由bounds,position,transform计算而来的</p>
+</li>
+<li>bounds           内部坐标</li>
+<li>position         锚点相对于父layer位置</li>
+<li>transform</li>
+<li>anchorPoint     默认位于layer的中心{0.5, 0.5}，相对坐标，可改变</li>
+<li>zPosition       float控制上下顺序</li>
+</ol>
+<p>虽然CALayer不能处理事件，但是却提供了两个帮助处理的方法</p>
+<ol>
+<li>containsPoint</li>
+<li><p>hitTest    </p>
+</li>
+<li><p>cornerRadius</p>
+</li>
+<li>borderWidth</li>
+<li>borderColor</li>
+<li>shadowColor,shadowOffset,shadowRadius</li>
+<li>shadowPath</li>
+<li>mask            mask不透明的地方就是保留下来的值</li>
+<li>opacity         对应UIView的Alpha</li>
+<li>shouldRasterize 栅格化</li>
+</ol>
+<h2 id="专有图层"><a href="#专有图层" class="headerlink" title="专有图层"></a>专有图层</h2><ol>
+<li>CAShapeLayer</li>
+<li>CATextLayer</li>
+<li>CATransformLayer</li>
+<li>CAGradientLayer</li>
+<li>CAReplicatorLayer</li>
+<li>CAScrollLayer</li>
+<li>CATiledLayer</li>
+<li>CAEmitterLayer</li>
+<li>CAEAGLLayer</li>
+<li>AVPlayerLayer</li>
+</ol>
+<h2 id="隐式动画"><a href="#隐式动画" class="headerlink" title="隐式动画"></a>隐式动画</h2><p>改变CALayer一个可做动画的属性时，属性会从先前的值平滑过渡到新的值，这一切都会默认行为。<br>CoreAnimation在每个runloop自动开始一次新的事务CATransaction。</p>
+<p>CATransaction通过入栈出栈的方式工作，可以设置时间和完成后的任务。<br>begin<br>setAnimationDuration<br>setCompletionBlock<br>commit</p>
+<p>隐身动画不能对UIView的关联图层起作用，那是如何禁用的呢？<br>-actionForKey: 主要是调用这个方法，以及内部的一系列方法。返回nil,则没有动画，返回CAAction协议对象，CALayer去做动画。<br>所以UIView其实就是layer的Delegate, 并且提供了-actionForLayer:forKey的实现方法。当不在一个动画块的实现中，UIView对所有图层行为返回nil，但是在动画block范围之内，它就返回了一个非空值。</p>
+<p>除此之外也可以通过setDisableActions，禁用隐式动画。</p>
+<p>当设置属性的时候改变的是模型图层，动画中看到的是呈现图层。<br>presentationLayer<br>modelLayer</p>
+<h2 id="显式动画"><a href="#显式动画" class="headerlink" title="显式动画"></a>显式动画</h2><p>能够对一些属性做指定的自定义动画，或者创建非线性动画，比如沿着任意一条曲线移动。</p>
+<h3 id="属性动画"><a href="#属性动画" class="headerlink" title="属性动画"></a>属性动画</h3><p>CAAnimation –&gt; CAPropertyAnimation –&gt; CABasicAnimation</p>
+<p>id fromValue<br>id toValue<br>id byValue</p>
+<p>动画很常见的问题是，动画结束之后又立刻变回原始值。这是因为动画并没有改变图层模型。所以我们需要在动画开始之前或者之后改变属性的值。</p>
+<p>动画之前：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">- (void)applyBasicAnimation:(CABasicAnimation *)animation toLayer:(CALayer *)layer</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    //set the from value (using presentation layer if available)</span><br><span class="line">    animation.fromValue = [(layer.presentationLayer ? layer.presentationLayer : layer) valueForKeyPath:animation.keyPath];</span><br><span class="line">    //update the property in advance</span><br><span class="line">    //note: this approach will only work if toValue != nil </span><br><span class="line">    [CATransaction begin];</span><br><span class="line">    [CATransaction setDisableActions:YES];</span><br><span class="line">    [layer setValue:animation.toValue forKeyPath:animation.keyPath];</span><br><span class="line">    [CATransaction commit];</span><br><span class="line">    //apply animation to layer</span><br><span class="line">    [layer addAnimation:animation forKey:nil];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>动画之后：</p>
+<p>-animationDidStop:finished:</p>
+<p>CAAnimation实现了KVC（键-值-编码）协议，于是你可以用-setValue:forKey:和-valueForKey:方法来存取属性。但是CAAnimation有一个与众不同的特性：它更像一个NSDictionary，可以让你随意设置键值对，即使和你使用的动画类所声明的属性并不匹配。</p>
+<h3 id="关键帧动画"><a href="#关键帧动画" class="headerlink" title="关键帧动画"></a>关键帧动画</h3><p>CAAnimation –&gt; CAPropertyAnimation –&gt; CAKeyframeAnimation</p>
+<p>values<br>path</p>
+<h3 id="动画组"><a href="#动画组" class="headerlink" title="动画组"></a>动画组</h3><p>CAAnimationGroup</p>
+<h2 id="过渡动画"><a href="#过渡动画" class="headerlink" title="过渡动画"></a>过渡动画</h2><p>CATransition</p>
+<h2 id="动画的时间"><a href="#动画的时间" class="headerlink" title="动画的时间"></a>动画的时间</h2><p>duration 默认0.25<br>repeatCount 默认1<br>repeatDuration 它让动画重复一个指定的时间，而不是指定次数。<br>autoreverses</p>
+<p>beginTime<br>speed<br>timeOffset</p>
+<p>fillMode</p>
+<h2 id="缓冲方程式"><a href="#缓冲方程式" class="headerlink" title="缓冲方程式"></a>缓冲方程式</h2><p>CAMediaTimingFunction timingFunctionWithName:   +functionWithControlPoints::::<br>timingFunctions 一个数组</p>
+<p>当一个复杂的缓冲出现的时候，并不能使用一个3次贝塞尔曲线描述，可以使用</p>
+<ol>
+<li>用CAKeyframeAnimation创建一个动画，然后分割成几个步骤，每个小步骤使用自己的计时函数</li>
+<li>使用定时器逐帧更新实现动画</li>
+</ol>
+<h2 id="CADisplayLink-NSTimer-NSRunloop"><a href="#CADisplayLink-NSTimer-NSRunloop" class="headerlink" title="CADisplayLink NSTimer NSRunloop"></a>CADisplayLink NSTimer NSRunloop</h2><h2 id="性能调优，CPU、GPU-高效绘图，图像IO-图层性能"><a href="#性能调优，CPU、GPU-高效绘图，图像IO-图层性能" class="headerlink" title="性能调优，CPU、GPU, 高效绘图，图像IO,图层性能"></a>性能调优，CPU、GPU, 高效绘图，图像IO,图层性能</h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/" data-id="ck28skzpz00030cz6wndv0zg3" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-AFNetworking学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/02/27/AFNetworking学习笔记/" class="article-date">
@@ -163,7 +352,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/02/27/AFNetworking学习笔记/" data-id="ck026ngdb000vo8z6pkinmiqf" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/02/27/AFNetworking学习笔记/" data-id="ck28skzrf000x0cz67rg8r6sx" class="article-share-link">Share</a>
       
       
     </footer>
@@ -202,7 +391,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/27/类似股票数据表格效果/" data-id="ck026ngd4000to8z6q9g6nt4v" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/10/27/类似股票数据表格效果/" data-id="ck28skzr5000v0cz6lxto3o4z" class="article-share-link">Share</a>
       
       
     </footer>
@@ -243,7 +432,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/12/OC之事件传递响应链/" data-id="ck026ngck000do8z6yxorhuee" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/10/12/OC之事件传递响应链/" data-id="ck28skzql000e0cz67xbmfrdx" class="article-share-link">Share</a>
       
       
     </footer>
@@ -301,7 +490,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" data-id="ck026ngcy000no8z639ltcy29" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" data-id="ck28skzqx000o0cz61s3rgk4s" class="article-share-link">Share</a>
       
       
     </footer>
@@ -355,7 +544,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="ck026ngcm000eo8z6fmr1vedj" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="ck28skzqn000g0cz6jprozj50" class="article-share-link">Share</a>
       
       
     </footer>
@@ -425,7 +614,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之消息与转发/" data-id="ck026ngco000fo8z6qsw4o25f" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/28/OC之消息与转发/" data-id="ck28skzqm000f0cz6fo6xo722" class="article-share-link">Share</a>
       
       
     </footer>
@@ -484,7 +673,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之GCD和NSOperation/" data-id="ck026ngci000bo8z68eb747tl" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/28/OC之GCD和NSOperation/" data-id="ck28skzqi000c0cz69w5rbxr8" class="article-share-link">Share</a>
       
       
     </footer>
@@ -561,147 +750,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之Runloop/" data-id="ck026ngcj000co8z6dufrh1zx" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-OC之Block" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/09/28/OC之Block/" class="article-date">
-  <time datetime="2017-09-28T04:12:05.000Z" itemprop="datePublished">2017-09-28</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/28/OC之Block/">OC之Block</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Block的结构"><a href="#Block的结构" class="headerlink" title="Block的结构"></a>Block的结构</h2><p>首先来说，block也是一个对象，因为它也有isa指针。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// revised new layout</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Block_descriptor</span> // 引用了外部变量才会有<span class="title">copy</span>和<span class="title">dispose</span>函数</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">int</span> reserved;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> <span class="keyword">int</span> size;</span><br><span class="line">    <span class="keyword">void</span> (*copy)(<span class="keyword">void</span> *dst, <span class="keyword">void</span> *src);</span><br><span class="line">    <span class="keyword">void</span> (*dispose)(<span class="keyword">void</span> *);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Block_layout</span> 			// <span class="title">block</span>对应的结构体</span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">void</span> *isa; <span class="comment">// 以下三种类型</span></span><br><span class="line">    <span class="keyword">int</span> flags;</span><br><span class="line">    <span class="keyword">int</span> reserved; </span><br><span class="line">    <span class="keyword">void</span> (*invoke)(<span class="keyword">void</span> *, ...);</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">Block_descriptor</span> *<span class="title">descriptor</span>;</span></span><br><span class="line">    <span class="comment">// imported variables</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
-<h2 id="Block的种类"><a href="#Block的种类" class="headerlink" title="Block的种类"></a>Block的种类</h2><p>_NSConcreteGlobalBlock。     //1. 全局Block,分布在数据区;2.函数内部定义，没有引用任何外部变量。<br>_NSConcreteStackBlock。      //1. 通过copy分配到stack上的Block。<br>_NSConcreteMallocBlock。     //1. 其他</p>
-<h2 id="Block-从stack中copy到heap上"><a href="#Block-从stack中copy到heap上" class="headerlink" title="Block 从stack中copy到heap上"></a>Block 从stack中copy到heap上</h2><p>将block赋给strong类型的变量时，编译器会自动将其copy到heap上。<br>block作为函数的参数、为__weak类型的block变量赋值, 编译器不会自动copy。<br>将_NSConcreteStackBlock类型的block copy到heap上变成_NSConcreteMallocBlock类型的block时，会retain其引用的外部object。</p>
-<h3 id="指导原则"><a href="#指导原则" class="headerlink" title="指导原则"></a>指导原则</h3><p>block进行多次copy都不会有问题</p>
-<h2 id="Block-内部可以修改的的外部变量"><a href="#Block-内部可以修改的的外部变量" class="headerlink" title="Block 内部可以修改的的外部变量"></a>Block 内部可以修改的的外部变量</h2><ol>
-<li>全局变量、全局静态变量、静态变量以及类的成员变量。</li>
-<li><p>用__block修饰的自变量。仅仅是这个变量自身（而不是指向的对象）会被转成一个结构。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> __<span class="title">Block_byref_blockArr_0</span> &#123;</span></span><br><span class="line"><span class="keyword">void</span> *__isa;</span><br><span class="line">__Block_byref_blockArr_0 *__forwarding;</span><br><span class="line"><span class="keyword">int</span> __flags;</span><br><span class="line"><span class="keyword">int</span> __size;</span><br><span class="line"><span class="keyword">void</span> (*__Block_byref_id_object_copy)(<span class="keyword">void</span>*, <span class="keyword">void</span>*);</span><br><span class="line"><span class="keyword">void</span> (*__Block_byref_id_object_dispose)(<span class="keyword">void</span>*);</span><br><span class="line">NSArray *blockArr;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> (*blockA)(<span class="keyword">void</span>) = ((<span class="keyword">void</span> (*)())&amp;__main_block_impl_0(</span><br><span class="line">        (<span class="keyword">void</span> *)__main_block_func_0, </span><br><span class="line">        &amp;__main_block_desc_0_DATA, </span><br><span class="line">        (__Block_byref_blockArr_0 *)&amp;blockArr,</span><br><span class="line">        <span class="number">570425344</span>)</span><br><span class="line">     );</span><br><span class="line"></span><br><span class="line">__main_block_desc_0_DATA = &#123; </span><br><span class="line">    <span class="number">0</span>, </span><br><span class="line">    <span class="keyword">sizeof</span>(struct __main_block_impl_0), </span><br><span class="line">    __main_block_copy_0, </span><br><span class="line">    __main_block_dispose_0</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> __main_block_copy_0(struct __main_block_impl_0*dst, struct __main_block_impl_0*src) &#123;</span><br><span class="line">    _Block_object_assign(</span><br><span class="line">        (<span class="keyword">void</span>*)&amp;dst-&gt;blockArr, </span><br><span class="line">        (<span class="keyword">void</span>*)src-&gt;blockArr, </span><br><span class="line">        <span class="number">8</span><span class="comment">/*BLOCK_FIELD_IS_BYREF*/</span></span><br><span class="line">        );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>block变量会随block copy到heap而同样被copy到heap上。其最终会调用到_Block_object_assign函数。<br>因此，在此情况下就存在同时访问stack上和heap上 </strong>block变量的情况。这就是 <strong>forwarding指针的使命所在。<br>当block变量从stack到copy到heap上时，stack上的forwarding被修改为指向heap上的block变量。通过该机制（stack中访问的是p.</strong>forwarding.p, heap中直接是p），使得无论是在stack上还是heap上都能访问到同一个(heap上)block变量（stack上的变量常规方式已经不可访问）。</p>
-</li>
-</ol>
-<p>体会一下。blockStr.__forwarding-&gt;blockStr<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line">    </span><br><span class="line">    NSMutableString *str = [NSMutableString stringWithFormat:@&quot;123&quot;];</span><br><span class="line">    __block NSMutableString *blockStr = str;</span><br><span class="line">    void (^blockB)(void) = ^&#123;</span><br><span class="line">        [blockStr appendString:@&quot;4&quot;];</span><br><span class="line">        blockStr = [NSMutableString stringWithFormat:@&quot;321&quot;];</span><br><span class="line">        NSLog(@&quot;%@&quot;, blockStr);// 321</span><br><span class="line">    &#125;;</span><br><span class="line">    blockB();</span><br><span class="line">    NSLog(@&quot;%@&quot;, str);//1234</span><br><span class="line">    NSLog(@&quot;%@&quot;, blockStr);//321</span><br><span class="line">    </span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line"></span><br><span class="line">    NSMutableString *str = ((NSMutableString *(*)(id, SEL, NSString *, ...))(void *)objc_msgSend)((id)objc_getClass(&quot;NSMutableString&quot;), sel_registerName(&quot;stringWithFormat:&quot;), (NSString *)&amp;__NSConstantStringImpl__var_folders_15_yqh06lds04g5mgfqn8x8s5k40000gn_T_main_9c0693_mi_0);</span><br><span class="line">    __attribute__((__blocks__(byref))) __Block_byref_blockStr_0 blockStr = &#123;(void*)0,(__Block_byref_blockStr_0 *)&amp;blockStr, 33554432, sizeof(__Block_byref_blockStr_0), __Block_byref_id_object_copy_131, __Block_byref_id_object_dispose_131, str&#125;;</span><br><span class="line">    void (*blockB)(void) = ((void (*)())&amp;__main_block_impl_0((void *)__main_block_func_0, &amp;__main_block_desc_0_DATA, (__Block_byref_blockStr_0 *)&amp;blockStr, 570425344));</span><br><span class="line">    ((void (*)(__block_impl *))((__block_impl *)blockB)-&gt;FuncPtr)((__block_impl *)blockB);</span><br><span class="line">    NSLog((NSString *)&amp;__NSConstantStringImpl__var_folders_15_yqh06lds04g5mgfqn8x8s5k40000gn_T_main_9c0693_mi_4, str);</span><br><span class="line">    NSLog((NSString *)&amp;__NSConstantStringImpl__var_folders_15_yqh06lds04g5mgfqn8x8s5k40000gn_T_main_9c0693_mi_5, (blockStr.__forwarding-&gt;blockStr));</span><br><span class="line"></span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="Block-捕获的普通变量"><a href="#Block-捕获的普通变量" class="headerlink" title="Block 捕获的普通变量"></a>Block 捕获的普通变量</h2><ol>
-<li>retain了block内引用的对象</li>
-<li>将源block中object的地址赋给了目标block中的object变量</li>
-</ol>
-<h2 id="关于一个Timer的问题"><a href="#关于一个Timer的问题" class="headerlink" title="关于一个Timer的问题"></a>关于一个Timer的问题</h2><p>Q: 如果寄希望在dealloc去invalidate timer只能循环引用了。<br>A: 为什么？因为runloop（强引用）timer, timer（强引用）self。这里有两个前提1是强引用一个weakSelf会使得引用计数+1（这就是什么你传一个weakSelf作为target也不行的原因），2invalidate会释放runloop对timer的持有，并释放对self的持有。<br>解决的方案有很多，但是目的只有一个就是适当的时间invalidate, 比如viewWillDisappear中。但是就想在dealloc中呢，那应该用一个Proxy对象，让timer(强引用)proxy,这样self中的dealloc就会执行.那么问题来了，为什么block中weakSelf就不会使得引用计数+1呢？strongSelf又在干什么呢？strongSelf是为了防止在Block执行过程中使用。在block中,block是对变量进行捕获,意思是对使用到的变量进行拷贝操作,注意是拷贝的不是对象,而是变量自身,拿上面的来说,block中只是对变量wself拷贝了一份,也就是说,block中也定义了一个weak对象,相当于,在block的内存区域中,定义了一个__weak blockWeak对象,然后执行了blockWeak = wself;注意到了没,这里并没有引起对象的持有量的变化,所以没有问题</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之Block/" data-id="ck026ngcd0009o8z6ewpu6cxo" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-OC之Runtime" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/09/27/OC之Runtime/" class="article-date">
-  <time datetime="2017-09-27T01:57:01.000Z" itemprop="datePublished">2017-09-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/27/OC之Runtime/">OC之Runtime</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h2><p>做一个技术总结，总是零零散散的看到各种博客讲rumtime。其中不乏大牛讲的非常棒。但是自己不动手总是别人的，如何才能变成自己的呢，那就得自己捕鱼造轮子咯。</p>
-<p><a href="https://opensource.apple.com/tarballs/objc4/" target="_blank" rel="noopener">runtime源码</a></p>
-<h2 id="对象模型"><a href="#对象模型" class="headerlink" title="对象模型"></a>对象模型</h2><p>在OC中什么是对象（喂，我不是故意的好嘛！）。有isa指针的都是对象，这里的isa其实是is a pointer的简写，它指向他的Class。</p>
-<p>首先在源码中，objc-private.h 文件中。<br>line-51，我发现了两个经常使用的Class和id的申明，熟悉c++的朋友，应该能区分申明（declaration）和定义（definition）。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">objc_class</span> *<span class="title">Class</span>;</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">objc_object</span> *<span class="title">id</span>;</span></span><br></pre></td></tr></table></figure>
-<p>按住CMD点击跳转到objc_object的declaration处，同文件line-168，我们可以看到objc_object的本质是一个结构体，并且它只有一个私有成员isa，当然还包含许多的方法。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">objc_object</span> &#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">isa_t</span> isa;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    ...</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    ...</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>同样的方式，我们在objc-runtime-new.h，line-1060，我们可以看到objc_class的definition，它是继承自objc_object的。<em>注意（敲黑板）</em>其实类也是一个对象！</p>
-<ol>
-<li>当我们调用某一个对象的instance方法的时候，它会通过它的isa找到它的Class, 并在方法列表中查找。（当然找不到的话，还会super Class，最后还有消息转发机制，以后再聊）</li>
-<li>当我们调用一个类的Class方法的时候，它会通过它的isa找到它的MetaClass, 并在方法列表中查找。</li>
-<li>MetaClass的isa指向哪里呢？指向RootMetaClass。what❓感觉是无穷无尽的。别着急，其实在OC中有两个RootClass, 一个是NSObject（另一个是NSProxy以后再聊)，它的isa其实就是RootMetaClass, 它的super指向nil。 RootMetaClass的isa指向自己，它的super指向NSObject。至此形成了一个完整的结构。</li>
-</ol>
-<p>盗一张经典图。</p>
-<img src="/2017/09/27/OC之Runtime/object_model.png">
-<p>对象的内存模型是啥样的呢？<br>对象成员变量从根类开始依次排列（isa就是根类NSObject的成员变量，也就是指向对象的类）</p>
-<p>方法调用的原理，isa指针在方法表中寻找，优化先找cache</p>
-<h2 id="Category-和-Associated-Objects"><a href="#Category-和-Associated-Objects" class="headerlink" title="Category 和 Associated Objects"></a>Category 和 Associated Objects</h2><h3 id="Category"><a href="#Category" class="headerlink" title="Category"></a>Category</h3><p>使用场景</p>
-<ol>
-<li>给现有的类添加方法</li>
-<li>将一个类的实现，拆分成多个独立的文件。（这点对比Swift的extension）</li>
-</ol>
-<p>其实现原理，第一步为目标Class注册category, 第二步重建Class的方法列表<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> _read_images(header_info **hList, <span class="keyword">uint32_t</span> hCount, <span class="keyword">int</span> totalClasses, <span class="keyword">int</span> unoptimizedTotalClasses);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">remethodizeClass</span><span class="params">(Class cls)</span></span>;</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">attachCategories</span><span class="params">(Class cls, category_list *cats, <span class="keyword">bool</span> flush_caches)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!cats) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">if</span> (PrintReplacedMethods) printReplacements(cls, cats);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">bool</span> isMeta = cls-&gt;isMetaClass();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// fixme rearrange to remove these intermediate allocations</span></span><br><span class="line">    <span class="keyword">method_list_t</span> **mlists = (<span class="keyword">method_list_t</span> **)                 <span class="comment">//注意此处是一个二级指针，它指向一个方法，属性，协议列表的指针，分配count个指针的大小空间</span></span><br><span class="line">        <span class="built_in">malloc</span>(cats-&gt;count * <span class="keyword">sizeof</span>(*mlists));                  <span class="comment">//使得每一个category文件方法，属性，协议在一个二级指针下。</span></span><br><span class="line">    <span class="keyword">property_list_t</span> **proplists = (<span class="keyword">property_list_t</span> **)</span><br><span class="line">        <span class="built_in">malloc</span>(cats-&gt;count * <span class="keyword">sizeof</span>(*proplists));</span><br><span class="line">    <span class="keyword">protocol_list_t</span> **protolists = (<span class="keyword">protocol_list_t</span> **)</span><br><span class="line">        <span class="built_in">malloc</span>(cats-&gt;count * <span class="keyword">sizeof</span>(*protolists));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Count backwards through cats to get newest categories first</span></span><br><span class="line">    <span class="keyword">int</span> mcount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> propcount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> protocount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> i = cats-&gt;count;</span><br><span class="line">    <span class="keyword">bool</span> fromBundle = NO;</span><br><span class="line">    <span class="keyword">while</span> (i--) &#123;                                               <span class="comment">//0. 反向构建。新的categories在最前面。（这个顺序和Build Phases中的Compile Source中的顺序有关）</span></span><br><span class="line">        <span class="keyword">auto</span>&amp; entry = cats-&gt;<span class="built_in">list</span>[i];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">method_list_t</span> *mlist = entry.cat-&gt;methodsForMeta(isMeta);</span><br><span class="line">        <span class="keyword">if</span> (mlist) &#123;</span><br><span class="line">            mlists[mcount++] = mlist;                           <span class="comment">//1. 加到方法列表中，构建mlists包含所有category的方法</span></span><br><span class="line">            fromBundle |= entry.hi-&gt;isBundle();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">property_list_t</span> *proplist = </span><br><span class="line">            entry.cat-&gt;propertiesForMeta(isMeta, entry.hi);</span><br><span class="line">        <span class="keyword">if</span> (proplist) &#123;</span><br><span class="line">            proplists[propcount++] = proplist;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">protocol_list_t</span> *protolist = entry.cat-&gt;protocols;</span><br><span class="line">        <span class="keyword">if</span> (protolist) &#123;</span><br><span class="line">            protolists[protocount++] = protolist;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">auto</span> rw = cls-&gt;data();</span><br><span class="line"></span><br><span class="line">    prepareMethodLists(cls, mlists, mcount, NO, fromBundle);</span><br><span class="line">    rw-&gt;methods.attachLists(mlists, mcount);                    <span class="comment">//2. 添加到方法列表中去</span></span><br><span class="line">    <span class="built_in">free</span>(mlists);</span><br><span class="line">    <span class="keyword">if</span> (flush_caches  &amp;&amp;  mcount &gt; <span class="number">0</span>) flushCaches(cls);</span><br><span class="line"></span><br><span class="line">    rw-&gt;properties.attachLists(proplists, propcount);</span><br><span class="line">    <span class="built_in">free</span>(proplists);</span><br><span class="line"></span><br><span class="line">    rw-&gt;protocols.attachLists(protolists, protocount);</span><br><span class="line">    <span class="built_in">free</span>(protolists);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">attachLists</span><span class="params">(List* <span class="keyword">const</span> * addedLists, <span class="keyword">uint32_t</span> addedCount)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (addedCount == <span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (hasArray()) &#123;                      <span class="comment">// 3** 已经存在list了，list.count &gt; 1</span></span><br><span class="line">        <span class="comment">// many lists -&gt; many lists</span></span><br><span class="line">        <span class="keyword">uint32_t</span> oldCount = <span class="built_in">array</span>()-&gt;count;</span><br><span class="line">        <span class="keyword">uint32_t</span> newCount = oldCount + addedCount;</span><br><span class="line">        setArray((<span class="keyword">array_t</span> *)<span class="built_in">realloc</span>(<span class="built_in">array</span>(), <span class="keyword">array_t</span>::byteSize(newCount)));</span><br><span class="line">        <span class="built_in">array</span>()-&gt;count = newCount;</span><br><span class="line">        memmove(<span class="built_in">array</span>()-&gt;lists + addedCount, <span class="built_in">array</span>()-&gt;lists, </span><br><span class="line">                oldCount * <span class="keyword">sizeof</span>(<span class="built_in">array</span>()-&gt;lists[<span class="number">0</span>]));          <span class="comment">//3. 往后挪动增加方法的位置。</span></span><br><span class="line">        <span class="built_in">memcpy</span>(<span class="built_in">array</span>()-&gt;lists, addedLists, </span><br><span class="line">                addedCount * <span class="keyword">sizeof</span>(<span class="built_in">array</span>()-&gt;lists[<span class="number">0</span>]));        <span class="comment">//4. 将增加的方法添加到最前面。</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="built_in">list</span>  &amp;&amp;  addedCount == <span class="number">1</span>) &#123; <span class="comment">// 1** 之前没有list, 并且添加数目为1</span></span><br><span class="line">        <span class="comment">// 0 lists -&gt; 1 list</span></span><br><span class="line">        <span class="built_in">list</span> = addedLists[<span class="number">0</span>];</span><br><span class="line">    &#125; </span><br><span class="line">    <span class="keyword">else</span> &#123;                                 <span class="comment">// 2** 没有list或者list.count = 1</span></span><br><span class="line">        <span class="comment">// 1 list -&gt; many lists</span></span><br><span class="line">        List* oldList = <span class="built_in">list</span>;</span><br><span class="line">        <span class="keyword">uint32_t</span> oldCount = oldList ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">uint32_t</span> newCount = oldCount + addedCount;</span><br><span class="line">        setArray((<span class="keyword">array_t</span> *)<span class="built_in">malloc</span>(<span class="keyword">array_t</span>::byteSize(newCount)));<span class="comment">//5. 分配新数目的空间</span></span><br><span class="line">        <span class="built_in">array</span>()-&gt;count = newCount;</span><br><span class="line">        <span class="keyword">if</span> (oldList) <span class="built_in">array</span>()-&gt;lists[addedCount] = oldList;      <span class="comment">//6. 如果有一个方法则移动到最后去</span></span><br><span class="line">        <span class="built_in">memcpy</span>(<span class="built_in">array</span>()-&gt;lists, addedLists,                      <span class="comment">//7. 将添加的方法内存copy到最前面去</span></span><br><span class="line">                addedCount * <span class="keyword">sizeof</span>(<span class="built_in">array</span>()-&gt;lists[<span class="number">0</span>]));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="Associated-Objects"><a href="#Associated-Objects" class="headerlink" title="Associated Objects"></a>Associated Objects</h3><p>为什么需要使用AssociatedObjects,因为Class的实例变量一旦确定就不能再添加了。</p>
-<p>它最主要也是用来实现这个功能，为现有的类添加公有属性。</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_setAssociatedObject</span><span class="params">(id object, <span class="keyword">const</span> <span class="keyword">void</span> *key, id value, objc_AssociationPolicy policy)</span></span>;</span><br><span class="line"><span class="function">id <span class="title">objc_getAssociatedObject</span><span class="params">(id object, <span class="keyword">const</span> <span class="keyword">void</span> *key)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_removeAssociatedObjects</span><span class="params">(id object)</span></span>;</span><br></pre></td></tr></table></figure>
-<p>第一个参数是目标对象<br>第二个参数是key, 对象级别的常量<br>第三个参数是需要添加的属性<br>第四个参数是关联策略，命名已经很清晰了。</p>
-<p>关联对象与被关联对象本身的存储并没有直接的关系，它是存储在单独的哈希表中的</p>
-<h2 id="load、initialize-和-Method-Swizzling"><a href="#load、initialize-和-Method-Swizzling" class="headerlink" title="load、initialize 和 Method Swizzling"></a>load、initialize 和 Method Swizzling</h2><h3 id="load"><a href="#load" class="headerlink" title="load"></a>load</h3><p>load方法的调用顺序是，先super,再child,最后再category。下面的递归是为了super和child的顺序，在调用的时候最后会调用category的load</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">schedule_class_load</span><span class="params">(Class cls)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls) <span class="keyword">return</span>;</span><br><span class="line">    assert(cls-&gt;isRealized());  <span class="comment">// _read_images should realize</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (cls-&gt;data()-&gt;flags &amp; RW_LOADED) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Ensure superclass-first ordering</span></span><br><span class="line">    schedule_class_load(cls-&gt;superclass);</span><br><span class="line"></span><br><span class="line">    add_class_to_loadable_list(cls);</span><br><span class="line">    cls-&gt;setInfo(RW_LOADED);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="initialize"><a href="#initialize" class="headerlink" title="initialize"></a>initialize</h3><p>initialize是类或者它的子类收到第一条消息的时候调用的。也就是说它是懒加载的，它是走的消息流程objc_msgSend。<br>可以用来初始化一些静态变量（使用不是很多啊）。</p>
-<h3 id="MethodSwizzling"><a href="#MethodSwizzling" class="headerlink" title="MethodSwizzling"></a>MethodSwizzling</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">+ (void)load &#123;                              // 1.当类加载到runtime的时候</span><br><span class="line">    static dispatch_once_t onceToken;</span><br><span class="line">    dispatch_once(&amp;onceToken, ^&#123;            // 2.保证只执行一次</span><br><span class="line">        Class class = [self class];</span><br><span class="line">        //3. SEL结构。 typedef struct objc_selector *SEL; 我的理解就是一个字符串。</span><br><span class="line">        //4. Method结构。 typedef struct method_t *Method; struct method_t &#123; SEL name, const char * types, IMP imp &#125;;</span><br><span class="line">        SEL originalSelector = @selector(viewWillAppear:);  // 5. 获取目标方法的SEL</span><br><span class="line">        SEL swizzledSelector = @selector(xxx_viewWillAppear:);// 6. 获取替换的方法的SEL</span><br><span class="line">        </span><br><span class="line">        Method originalMethod = class_getInstanceMethod(class, originalSelector); // 7. 获取目标方法的Method.</span><br><span class="line">        Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector); // 8. 获取替换方法的Method。</span><br><span class="line">        // 9.找到的originalSelector可能是父类的实现，子类根本没有实现</span><br><span class="line">        // 10.当前类没有此方法，originalMethod是父类的。 didAddMethod === true，去replace。</span><br><span class="line">        // 11.当前类有此方法，originalMethod是自身的。 didAddMethod === false，直接exchangeImp。</span><br><span class="line">        BOOL didAddMethod =</span><br><span class="line">            class_addMethod(class,</span><br><span class="line">                originalSelector,</span><br><span class="line">                method_getImplementation(swizzledMethod),</span><br><span class="line">                method_getTypeEncoding(swizzledMethod));        // 12.给当前类目标SEL增加一个替换IMP</span><br><span class="line">        if (didAddMethod) &#123;                                     // 13. 若添加成功了，再把替换SEL换成目标的方法</span><br><span class="line">            class_replaceMethod(class,</span><br><span class="line">                swizzledSelector,</span><br><span class="line">                method_getImplementation(originalMethod),</span><br><span class="line">                method_getTypeEncoding(originalMethod));</span><br><span class="line">        &#125; else &#123;                                                // 13. 若添加不成功，直接交换两个的实现。</span><br><span class="line">            method_exchangeImplementations(originalMethod, swizzledMethod);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)xxx_viewWillAppear:(BOOL)animated &#123;</span><br><span class="line">    [self xxx_viewWillAppear:animated];                         // 14. 为什么是个递归呢，其实内部的调用，已经是替换过的了。</span><br><span class="line">    NSLog(@&quot;viewWillAppear: %@&quot;, self);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="Autorelease-Pool和-runloop"><a href="#Autorelease-Pool和-runloop" class="headerlink" title="Autorelease Pool和 runloop"></a>Autorelease Pool和 runloop</h2><p>Autorelease对象什么时候释放？<br>在没有手动Autorelease Pool的情况下，它是在runloop迭代结束的时候释放。</p>
-<h3 id="AutoreleasePoolPage"><a href="#AutoreleasePoolPage" class="headerlink" title="AutoreleasePoolPage"></a>AutoreleasePoolPage</h3><p>AutoreleasePool是一个由AutoreleasePoolPage为节点组成的双向链表。分配4096的空间，除了自身占用一部分外，其他空间作为一个栈结构，存即将释放的对象指针。</p>
-<p>objc_autoreleasePoolPush 在page中添加一个哨兵对象，返回这个哨兵对象的地址context。<br>objc_autoreleasePoolPop(context), 根据哨兵对象，哨兵之后的统一发release消息。反过来一直清理至哨兵。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> id *<span class="title">autoreleaseFast</span><span class="params">(id obj)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    AutoreleasePoolPage *page = hotPage();</span><br><span class="line">    <span class="keyword">if</span> (page &amp;&amp; !page-&gt;full()) &#123;</span><br><span class="line">        <span class="keyword">return</span> page-&gt;add(obj);                  <span class="comment">//page中直接加入</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (page) &#123;</span><br><span class="line">        <span class="keyword">return</span> autoreleaseFullPage(obj, page);  <span class="comment">//新建一个page</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> autoreleaseNoPage(obj);          <span class="comment">//初始化一个page</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="runloop"><a href="#runloop" class="headerlink" title="runloop"></a>runloop</h3><p>在主线程的runloop中，每一个eventloop开始前，系统会自动创建一个autoreleasepool,并且eventloop结束是drain。每个autoreleasepoll对应一个线程。</p>
-<h2 id="KVO和KVC"><a href="#KVO和KVC" class="headerlink" title="KVO和KVC"></a>KVO和KVC</h2><h3 id="KVO的原理"><a href="#KVO的原理" class="headerlink" title="KVO的原理"></a>KVO的原理</h3><ol>
-<li>当一个object有观察者时，动态创建这个object的类的子类</li>
-<li>对于每个被观察的property，重写其set方法</li>
-<li>在重写的set方法中调用- willChangeValueForKey:和- didChangeValueForKey:通知观察者</li>
-<li>当一个property没有观察者时，删除重写的方法</li>
-<li>当没有observer观察任何一个property时，删除动态创建的子类</li>
-</ol>
-<p>因此，要想KVO生效，必须直接或间接的通过setter方法访问属性（KVC的setValue就是间接方式）。直接访问成员变量KVO是不生效的。</p>
-<p>直接访问成员变量，并希望触发。则通过在赋值前后手动调用这些方法。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- (void)willChangeValueForKey:(NSString *)key;</span><br><span class="line">- (void)didChangeValueForKey:(NSString *)key;</span><br></pre></td></tr></table></figure>
-<h3 id="KVC"><a href="#KVC" class="headerlink" title="KVC"></a>KVC</h3><p>KVO是基于KVC实现的</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/27/OC之Runtime/" data-id="ck026ngdc000wo8z64v3bc6lz" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/28/OC之Runloop/" data-id="ck28skzqj000d0cz6rur2xfk1" class="article-share-link">Share</a>
       
       
     </footer>
@@ -732,7 +781,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
     </div>
   </div>
 
@@ -745,6 +794,14 @@
       <ul>
         
           <li>
+            <a href="/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/">MacBook Pro(Retina, 13-inch, Early 2015)更换ssd</a>
+          </li>
+        
+          <li>
+            <a href="/2019/10/16/iOS证书和推送/">iOS证书和推送</a>
+          </li>
+        
+          <li>
             <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
           </li>
         
@@ -754,14 +811,6 @@
         
           <li>
             <a href="/2019/03/07/git-handbook/">git handbook</a>
-          </li>
-        
-          <li>
-            <a href="/2018/12/29/闲聊/">闲聊</a>
-          </li>
-        
-          <li>
-            <a href="/2018/10/25/iOS逆向开发学习笔记（2）/">iOS逆向开发学习笔记（2）</a>
           </li>
         
       </ul>
