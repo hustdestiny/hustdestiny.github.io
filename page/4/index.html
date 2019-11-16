@@ -61,6 +61,83 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-OC之Runloop" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/28/OC之Runloop/" class="article-date">
+  <time datetime="2017-09-28T05:30:15.000Z" itemprop="datePublished">2017-09-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/28/OC之Runloop/">OC之Runloop</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="runloop简介"><a href="#runloop简介" class="headerlink" title="runloop简介"></a>runloop简介</h2><p>runloop是线程的基础支撑。一般情况下，一个线程执行任务，执行完成后线程就退出了, 然而runloop能使线程随时处理时间但是不退出。runloop的目的是使线程在没有事情可做时进入休眠状态，避免CPU空转。<br>每个具体的runloop就是一个eventloop循环。</p>
+<h2 id="runloop的Thread"><a href="#runloop的Thread" class="headerlink" title="runloop的Thread"></a>runloop的Thread</h2><p>只有 main thread 的 runloop 默认是开启的，其他线程如果希望持续存活下去，就需要手动开启runloop。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NSRunLoop *runLoop = [NSRunLoop currentRunLoop];                    //1. lazy的方式获得runloop</span><br><span class="line">[runLoop addPort: [NSMachPort port] forMode:NSDefaultRunLoopMode];  //2. 至少有一个Timer,Observer/Source</span><br><span class="line">[runLoop run];                                                      //3. 开启runloop</span><br></pre></td></tr></table></figure>
+<p>需要开启的情况</p>
+<ol>
+<li>需要通过端口或自定义输入源与其他线程通讯；</li>
+<li>在线程中需要使用定时器；</li>
+<li>在线程上使用performSelector系列方法；</li>
+<li>需要线程周期性地执行一些任务</li>
+</ol>
+<h2 id="RunLoop-和-RunLoopMode"><a href="#RunLoop-和-RunLoopMode" class="headerlink" title="RunLoop 和 RunLoopMode"></a>RunLoop 和 RunLoopMode</h2><p>struct __CFRunLoopMode {<br>    CFStringRef _name;<br>    CFMutableSetRef _sources0;<br>    CFMutableSetRef _sources1;<br>    CFMutableArrayRef _observers;<br>    CFMutableArrayRef _timers;<br>};</p>
+<p>struct __CFRunLoop {<br>    CFMutableSetRef _commonModes;           // 字符串的集合(common)<br>    CFMutableSetRef _commonModeItems;       // timer加到这里去，会被copy到所有common的mode<br>    CFRunLoopModeRef _currentMode;          //<br>    CFMutableSetRef _modes;                 // mode的集合（default,tracking）<br>};</p>
+<h2 id="runloop的Modes"><a href="#runloop的Modes" class="headerlink" title="runloop的Modes"></a>runloop的Modes</h2><p>NSDefaultRunLoopMode<br>NSEventTrackingRunLoopMode<br>NSRunLoopCommonModes包含后者</p>
+<p>关于Timer在滚动的时候不执行的<br>ScrollView滚动时，系统会将main runloop切换到NSEventTrackingRunLoopMode。<br><code>Use the scheduledTimerWithTimeInterval:invocation:repeats: or scheduledTimerWithTimeInterval:target:selector:userInfo:repeats: class method to create the timer and schedule it on the current run loop in the default mode.</code><br>所以需要将[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];</p>
+<h2 id="runloop处理什么"><a href="#runloop处理什么" class="headerlink" title="runloop处理什么"></a>runloop处理什么</h2><p>AutoreleasePool<br>事件响应（苹果注册了一个 Source1 (基于 mach port 的) 用来接收系统事件）<br>手势识别（）<br>界面更新(把uiview和calayer标记为未处理)<br>timer事件<br>PerformSelecter(内部通过一个timer)</p>
+<h2 id="update-2019-05-19-源码记录。"><a href="#update-2019-05-19-源码记录。" class="headerlink" title="update 2019.05.19 源码记录。"></a>update 2019.05.19 源码记录。</h2><h2 id="CFRunLoopActivity"><a href="#CFRunLoopActivity" class="headerlink" title="CFRunLoopActivity"></a>CFRunLoopActivity</h2><p>kCFRunLoopEntry<br>kCFRunLoopBeforeTimers<br>kCFRunLoopBeforeSources<br>kCFRunLoopBeforeWaiting<br>kCFRunLoopAfterWaiting<br>kCFRunLoopExit<br>kCFRunLoopAllActivities</p>
+<h2 id="Modes"><a href="#Modes" class="headerlink" title="Modes"></a>Modes</h2><p>kCFRunLoopDefaultMode<br>kCFRunLoopCommonModes</p>
+<h2 id="CFRunLoop不能创建，只能通过GetMain和GetCurrent获取"><a href="#CFRunLoop不能创建，只能通过GetMain和GetCurrent获取" class="headerlink" title="CFRunLoop不能创建，只能通过GetMain和GetCurrent获取"></a>CFRunLoop不能创建，只能通过GetMain和GetCurrent获取</h2><p>CF_EXPORT CFRunLoopRef CFRunLoopGetCurrent(void);<br>CF_EXPORT CFRunLoopRef CFRunLoopGetMain(void);</p>
+<p>CF_EXPORT CFRunLoopRef _CFRunLoopGet0(pthread_t t);</p>
+<ol>
+<li>初始化字段 key为pthread, value为runloop。</li>
+<li>预先放一个mainLoop</li>
+<li>再找对应的runLoop，没有则创建一个</li>
+</ol>
+<p>static CFRunLoopRef __CFRunLoopCreate(pthread_t t);</p>
+<ol>
+<li>默认创建kCFRunLoopDefaultMode，并在CommonModes。</li>
+</ol>
+<h2 id="根据ModeName创建CFRunLoopMode"><a href="#根据ModeName创建CFRunLoopMode" class="headerlink" title="根据ModeName创建CFRunLoopMode"></a>根据ModeName创建CFRunLoopMode</h2><p>static CFRunLoopModeRef __CFRunLoopFindMode(CFRunLoopRef rl, CFStringRef modeName, Boolean create)</p>
+<h2 id="加一个Mode到CommonModes"><a href="#加一个Mode到CommonModes" class="headerlink" title="加一个Mode到CommonModes"></a>加一个Mode到CommonModes</h2><p>1 现将ModeName 加到_commonModes<br>2 将_commonModeItems 同步到，这新的ModeName下。</p>
+<h2 id="加一个ModeItem到CommonModes中"><a href="#加一个ModeItem到CommonModes中" class="headerlink" title="加一个ModeItem到CommonModes中"></a>加一个ModeItem到CommonModes中</h2><p>1 将 modeItem 加到 _commonModeItems中<br>2 将 modeItem 同步加到所有的_commonModes中</p>
+<h3 id="CFRunLoop执行Block"><a href="#CFRunLoop执行Block" class="headerlink" title="CFRunLoop执行Block"></a>CFRunLoop执行Block</h3><p>void CFRunLoopPerformBlock(CFRunLoopRef rl, CFTypeRef mode, void (^block)(void))</p>
+<h3 id="Source-Source0和Source1"><a href="#Source-Source0和Source1" class="headerlink" title="Source (Source0和Source1)"></a>Source (Source0和Source1)</h3><h3 id="Observer"><a href="#Observer" class="headerlink" title="Observer"></a>Observer</h3><h3 id="Timer"><a href="#Timer" class="headerlink" title="Timer"></a>Timer</h3><h2 id="CFRunLoopRun"><a href="#CFRunLoopRun" class="headerlink" title="CFRunLoopRun"></a>CFRunLoopRun</h2><p>CF_EXPORT SInt32 CFRunLoopRunInMode(CFStringRef mode, CFTimeInterval seconds, Boolean returnAfterSourceHandled);</p>
+<h3 id="CFRunLoopRef"><a href="#CFRunLoopRef" class="headerlink" title="CFRunLoopRef"></a>CFRunLoopRef</h3><p>typedef struct <strong>CFRunLoop * CFRunLoopRef;<br>struct </strong>CFRunLoop {<br>    CFRuntimeBase _base;<br>    pthread_mutex_t _lock;            /<em> locked for accessing mode list </em>/<br>    __CFPort _wakeUpPort;            // used for CFRunLoopWakeUp<br>    Boolean _unused;<br>    volatile _per_run_data <em>_perRunData;              // reset for runs of the run loop<br>    pthread_t _pthread;<br>    uint32_t _winthread;<br>    CFMutableSetRef _commonModes;<br>    CFMutableSetRef _commonModeItems;<br>    CFRunLoopModeRef _currentMode;<br>    CFMutableSetRef _modes;<br>    struct _block_item </em>_blocks_head;<br>    struct _block_item *_blocks_tail;<br>    CFAbsoluteTime _runTime;<br>    CFAbsoluteTime _sleepTime;<br>    CFTypeRef _counterpart;<br>};</p>
+<p>_commonModes 是个字符串的集合（default,uitrack…）<br>_commonModeItems 是个（Source,Timer,Observer）的集合<br>_modes 是mode的集合</p>
+<h3 id="CFRunLoopModeRef"><a href="#CFRunLoopModeRef" class="headerlink" title="CFRunLoopModeRef"></a>CFRunLoopModeRef</h3><p>typedef struct <strong>CFRunLoopMode *CFRunLoopModeRef;<br>struct </strong>CFRunLoopMode {<br>    CFRuntimeBase _base;<br>    pthread_mutex_t _lock;    /<em> must have the run loop locked before locking this </em>/<br>    CFStringRef _name;<br>    Boolean _stopped;<br>    char _padding[3];<br>    CFMutableSetRef _sources0;<br>    CFMutableSetRef _sources1;<br>    CFMutableArrayRef _observers;<br>    CFMutableArrayRef _timers;<br>    CFMutableDictionaryRef _portToV1SourceMap;<br>    __CFPortSet _portSet;<br>    CFIndex _observerMask;</p>
+<p>#if USE_MK_TIMER_TOO<br>    mach_port_t _timerPort;<br>    Boolean _mkTimerArmed;</p>
+<p>#endif<br>    uint64_t _timerSoftDeadline; /<em> TSR </em>/<br>    uint64_t _timerHardDeadline; /<em> TSR </em>/<br>};</p>
+<h3 id="CFRunLoopSourceRef"><a href="#CFRunLoopSourceRef" class="headerlink" title="CFRunLoopSourceRef"></a>CFRunLoopSourceRef</h3><p>typedef struct <strong>CFRunLoopSource * CFRunLoopSourceRef;<br>struct </strong>CFRunLoopSource {<br>    CFRuntimeBase _base;<br>    uint32_t _bits;<br>    pthread_mutex_t _lock;<br>    CFIndex _order;            /<em> immutable </em>/<br>    CFMutableBagRef _runLoops;<br>    union {<br>    CFRunLoopSourceContext version0;    /<em> immutable, except invalidation </em>/<br>        CFRunLoopSourceContext1 version1;    /<em> immutable, except invalidation </em>/<br>    } _context;<br>};</p>
+<h3 id="CFRunLoopObserverRef"><a href="#CFRunLoopObserverRef" class="headerlink" title="CFRunLoopObserverRef"></a>CFRunLoopObserverRef</h3><p>typedef struct <strong>CFRunLoopObserver * CFRunLoopObserverRef;<br>struct </strong>CFRunLoopObserver {<br>    CFRuntimeBase _base;<br>    pthread_mutex_t _lock;<br>    CFRunLoopRef _runLoop;<br>    CFIndex _rlCount;<br>    CFOptionFlags _activities;        /<em> immutable </em>/<br>    CFIndex _order;            /<em> immutable </em>/<br>    CFRunLoopObserverCallBack _callout;    /<em> immutable </em>/<br>    CFRunLoopObserverContext _context;    /<em> immutable, except invalidation </em>/<br>};</p>
+<h3 id="CFRunLoopTimerRef"><a href="#CFRunLoopTimerRef" class="headerlink" title="CFRunLoopTimerRef"></a>CFRunLoopTimerRef</h3><p>typedef struct CF_BRIDGED_MUTABLE_TYPE(NSTimer) <strong>CFRunLoopTimer * CFRunLoopTimerRef;<br>struct </strong>CFRunLoopTimer {<br>    CFRuntimeBase _base;<br>    uint16_t _bits;<br>    pthread_mutex_t _lock;<br>    CFRunLoopRef _runLoop;<br>    CFMutableSetRef _rlModes;<br>    CFAbsoluteTime _nextFireDate;<br>    CFTimeInterval _interval;        /<em> immutable </em>/<br>    CFTimeInterval _tolerance;          /<em> mutable </em>/<br>    uint64_t _fireTSR;            /<em> TSR units </em>/<br>    CFIndex _order;            /<em> immutable </em>/<br>    CFRunLoopTimerCallBack _callout;    /<em> immutable </em>/<br>    CFRunLoopTimerContext _context;    /<em> immutable, except invalidation </em>/<br>};</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/28/OC之Runloop/" data-id="ck30vt4p8000dehz60slcuwt4" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-OC之Block" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2017/09/28/OC之Block/" class="article-date">
@@ -106,7 +183,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之Block/" data-id="ck28skzqh000b0cz6iyja0my7" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/28/OC之Block/" data-id="ck30vt4p2000behz63ixmm7pq" class="article-share-link">Share</a>
       
       
     </footer>
@@ -191,7 +268,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/27/OC之Runtime/" data-id="ck28skzrg000y0cz64vcqfh3i" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/27/OC之Runtime/" data-id="ck30vt4qh000zehz6bne33kpu" class="article-share-link">Share</a>
       
       
     </footer>
@@ -245,7 +322,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/18/Flask系列（-）介绍/" data-id="ck28skzq200050cz61w3wlra2" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/18/Flask系列（-）介绍/" data-id="ck30vt4ob0005ehz6x56bv2u3" class="article-share-link">Share</a>
       
       
     </footer>
@@ -323,7 +400,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/15/Flask初窥/" data-id="ck28skzq000040cz65v850ftn" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/15/Flask初窥/" data-id="ck30vt4o90004ehz6nlqqc4b7" class="article-share-link">Share</a>
       
       
     </footer>
@@ -401,7 +478,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/08/27/Vue初窥/" data-id="ck28skzqp000i0cz6fdin7ggr" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/08/27/Vue初窥/" data-id="ck30vt4pf000iehz6251uu0fq" class="article-share-link">Share</a>
       
       
     </footer>
@@ -442,7 +519,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/08/18/hello-world/" data-id="ck28skzqv000m0cz68f3vinr7" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/08/18/hello-world/" data-id="ck30vt4pk000mehz6v2ab90y3" class="article-share-link">Share</a>
       
       
     </footer>
@@ -473,7 +550,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
     </div>
   </div>
 
@@ -484,6 +561,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2019/11/16/记一次MethodSwizzle的bugfix/">记一次MethodSwizzle的bugfix</a>
+          </li>
         
           <li>
             <a href="/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/">MacBook Pro(Retina, 13-inch, Early 2015)更换ssd</a>
@@ -499,10 +580,6 @@
         
           <li>
             <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
-          </li>
-        
-          <li>
-            <a href="/2019/03/07/git-handbook/">git handbook</a>
           </li>
         
       </ul>

@@ -3,14 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Archives: 2018/12 | Destiny</title>
+  <title>记一次MethodSwizzle的bugfix | Destiny</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Destiny">
-<meta property="og:url" content="http://yoursite.com/archives/2018/12/index.html">
+  <meta name="description" content="Bug现象是，进入App列表页空白，杀进程后恢复不复现。顶部挂着一个”点击加载更多”，然后点击了也没有内容出现。  首先确认服务端有没有正确返回。（万一服务端就是返回空列表，锅就甩出去了）很明显并不是，从报bug同学的日志分析来看。接口是正常返回的。  检查逻辑是否正常。（这一步没有什么好的办法，硬着头皮读咯，自己写的）一切都在主线程正常执行，看不出什么异常  尝试复现几个兄弟，一起操作了半天也没">
+<meta property="og:type" content="article">
+<meta property="og:title" content="记一次MethodSwizzle的bugfix">
+<meta property="og:url" content="http://yoursite.com/2019/11/16/记一次MethodSwizzle的bugfix/index.html">
 <meta property="og:site_name" content="Destiny">
+<meta property="og:description" content="Bug现象是，进入App列表页空白，杀进程后恢复不复现。顶部挂着一个”点击加载更多”，然后点击了也没有内容出现。  首先确认服务端有没有正确返回。（万一服务端就是返回空列表，锅就甩出去了）很明显并不是，从报bug同学的日志分析来看。接口是正常返回的。  检查逻辑是否正常。（这一步没有什么好的办法，硬着头皮读咯，自己写的）一切都在主线程正常执行，看不出什么异常  尝试复现几个兄弟，一起操作了半天也没">
+<meta property="og:updated_time" content="2019-11-16T01:16:43.573Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Destiny">
+<meta name="twitter:title" content="记一次MethodSwizzle的bugfix">
+<meta name="twitter:description" content="Bug现象是，进入App列表页空白，杀进程后恢复不复现。顶部挂着一个”点击加载更多”，然后点击了也没有内容出现。  首先确认服务端有没有正确返回。（万一服务端就是返回空列表，锅就甩出去了）很明显并不是，从报bug同学的日志分析来看。接口是正常返回的。  检查逻辑是否正常。（这一步没有什么好的办法，硬着头皮读咯，自己写的）一切都在主线程正常执行，看不出什么异常  尝试复现几个兄弟，一起操作了半天也没">
   
     <link rel="alternate" href="/atom.xml" title="Destiny" type="application/atom+xml">
   
@@ -59,39 +63,68 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2018" class="archive-year">2018</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2018/12/29/闲聊/" class="archive-article-date">
-  <time datetime="2018-12-29T09:53:35.000Z" itemprop="datePublished">Dec 29</time>
+        <section id="main"><article id="post-记一次MethodSwizzle的bugfix" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/11/16/记一次MethodSwizzle的bugfix/" class="article-date">
+  <time datetime="2019-11-16T00:38:35.000Z" itemprop="datePublished">2019-11-16</time>
 </a>
-      
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2018/12/29/闲聊/">闲聊</a>
+    <h1 class="article-title" itemprop="name">
+      记一次MethodSwizzle的bugfix
     </h1>
   
 
-    </header>
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Bug现象是，进入App列表页空白，杀进程后恢复不复现。顶部挂着一个”点击加载更多”，然后点击了也没有内容出现。</p>
+<ol>
+<li><p>首先确认服务端有没有正确返回。（万一服务端就是返回空列表，锅就甩出去了）<br>很明显并不是，从报bug同学的日志分析来看。接口是正常返回的。</p>
+</li>
+<li><p>检查逻辑是否正常。（这一步没有什么好的办法，硬着头皮读咯，自己写的）<br>一切都在主线程正常执行，看不出什么异常</p>
+</li>
+<li><p>尝试复现<br>几个兄弟，一起操作了半天也没有复现（更别谈稳定复现了），出问题的同学是很久不使用的用户。</p>
+</li>
+<li><p>模拟复现，列表空白<br>4.1 cell高度为0，虽然没有高度，但是cell内部的空间还是可以渲染在屏幕的左上角。<br>4.2 reloadData未调用。<br>4.3 DZNEmptyView未出现，间接说明数据源有值。</p>
+</li>
+</ol>
+<ol>
+<li><p>MJRefresh、DZNEmptyDataSet对reloadData有hook<br>5.1 其中DZNEmptyDataSet虽然并未明显复现，实现诡异，自己维护了一个方法的静态数组，而且lazy hook。key是”固定key+方法名”，逻辑上只有当DZNEmptyDataSet是最后一个hook才能成立。<br>5.2而MJRefresh，在load方法中hook，本不应该出现问题，强行延后现象一致。<br>5.3排查项目中的reloadData，发现可疑点某个特殊case下<br><code>[[[self.tableView rac_signalForSelector:@selector(reloadData)]</code><br>RAC也是lazy hook的方式。<br>5.4再从日志中确认，出问题的情况符合推论。</p>
+</li>
+<li><p>结论<br> 6.1 修复DZNEmptyDataSet的不正确的hook方式<br> 6.2 能少用hook黑魔法还是要少用，太强大，不容易控制<br> 6.3 日志很重要<br> 6.4 排查疑难问题要尝试复现，或者模拟复现</p>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/11/16/记一次MethodSwizzle的bugfix/" data-id="ck30vt4pz000wehz6wzo6eic5" class="article-share-link">Share</a>
+      
+      
+    </footer>
   </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">MacBook Pro(Retina, 13-inch, Early 2015)更换ssd</div>
+    </a>
+  
+</nav>
+
+  
 </article>
-  
-  
-    </div></section>
-  
 
 </section>
         

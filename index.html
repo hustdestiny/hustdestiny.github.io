@@ -61,6 +61,59 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-记一次MethodSwizzle的bugfix" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/11/16/记一次MethodSwizzle的bugfix/" class="article-date">
+  <time datetime="2019-11-16T00:38:35.000Z" itemprop="datePublished">2019-11-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/11/16/记一次MethodSwizzle的bugfix/">记一次MethodSwizzle的bugfix</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Bug现象是，进入App列表页空白，杀进程后恢复不复现。顶部挂着一个”点击加载更多”，然后点击了也没有内容出现。</p>
+<ol>
+<li><p>首先确认服务端有没有正确返回。（万一服务端就是返回空列表，锅就甩出去了）<br>很明显并不是，从报bug同学的日志分析来看。接口是正常返回的。</p>
+</li>
+<li><p>检查逻辑是否正常。（这一步没有什么好的办法，硬着头皮读咯，自己写的）<br>一切都在主线程正常执行，看不出什么异常</p>
+</li>
+<li><p>尝试复现<br>几个兄弟，一起操作了半天也没有复现（更别谈稳定复现了），出问题的同学是很久不使用的用户。</p>
+</li>
+<li><p>模拟复现，列表空白<br>4.1 cell高度为0，虽然没有高度，但是cell内部的空间还是可以渲染在屏幕的左上角。<br>4.2 reloadData未调用。<br>4.3 DZNEmptyView未出现，间接说明数据源有值。</p>
+</li>
+</ol>
+<ol>
+<li><p>MJRefresh、DZNEmptyDataSet对reloadData有hook<br>5.1 其中DZNEmptyDataSet虽然并未明显复现，实现诡异，自己维护了一个方法的静态数组，而且lazy hook。key是”固定key+方法名”，逻辑上只有当DZNEmptyDataSet是最后一个hook才能成立。<br>5.2而MJRefresh，在load方法中hook，本不应该出现问题，强行延后现象一致。<br>5.3排查项目中的reloadData，发现可疑点某个特殊case下<br><code>[[[self.tableView rac_signalForSelector:@selector(reloadData)]</code><br>RAC也是lazy hook的方式。<br>5.4再从日志中确认，出问题的情况符合推论。</p>
+</li>
+<li><p>结论<br> 6.1 修复DZNEmptyDataSet的不正确的hook方式<br> 6.2 能少用hook黑魔法还是要少用，太强大，不容易控制<br> 6.3 日志很重要<br> 6.4 排查疑难问题要尝试复现，或者模拟复现</p>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/11/16/记一次MethodSwizzle的bugfix/" data-id="ck30vt4pz000wehz6wzo6eic5" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-MacBook-Pro-Retina-13-inch-Early-2015-更换ssd" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/" class="article-date">
@@ -113,7 +166,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/" data-id="ck28skzqf000a0cz6fjfyo05k" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/" data-id="ck30vt4ow000aehz67b5dntkb" class="article-share-link">Share</a>
       
       
     </footer>
@@ -163,7 +216,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/10/16/iOS证书和推送/" data-id="ck28skzqz000p0cz60tpiomqy" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/10/16/iOS证书和推送/" data-id="ck30vt4pn000oehz6tsni0qth" class="article-share-link">Share</a>
       
       
     </footer>
@@ -211,7 +264,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/06/06/CocoaPods/" data-id="ck28skzps00010cz6c4cewego" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/06/06/CocoaPods/" data-id="ck30vt4o40002ehz60bj49raf" class="article-share-link">Share</a>
       
       
     </footer>
@@ -259,7 +312,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/04/07/函数小计和数据结构/" data-id="ck28skzr4000u0cz6xaokcehz" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/04/07/函数小计和数据结构/" data-id="ck30vt4px000uehz6n9zgiya0" class="article-share-link">Share</a>
       
       
     </footer>
@@ -320,7 +373,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/03/07/git-handbook/" data-id="ck28skzqu000l0cz68y990hu5" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/03/07/git-handbook/" data-id="ck30vt4pi000lehz678hgtzie" class="article-share-link">Share</a>
       
       
     </footer>
@@ -360,7 +413,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/12/29/闲聊/" data-id="ck28skzr6000w0cz61jttgqpw" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/12/29/闲聊/" data-id="ck30vt4q0000xehz6pwev9kq5" class="article-share-link">Share</a>
       
       
     </footer>
@@ -439,7 +492,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/10/25/iOS逆向开发学习笔记（2）/" data-id="ck28skzr0000q0cz6w9c90xj7" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/10/25/iOS逆向开发学习笔记（2）/" data-id="ck30vt4pr000qehz6qdg7lupc" class="article-share-link">Share</a>
       
       
     </footer>
@@ -478,7 +531,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/09/26/中秋以后/" data-id="ck28skzr3000t0cz68yx4a94o" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/09/26/中秋以后/" data-id="ck30vt4pw000tehz6g9ljt9j9" class="article-share-link">Share</a>
       
       
     </footer>
@@ -536,44 +589,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/08/27/iOS逆向开发学习笔记（1）/" data-id="ck28skzr1000r0cz6onxb8x14" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-GPUImage学习笔记（4）" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/07/27/GPUImage学习笔记（4）/" class="article-date">
-  <time datetime="2018-07-27T13:21:35.000Z" itemprop="datePublished">2018-07-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/07/27/GPUImage学习笔记（4）/">GPUImage学习笔记（4）</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>GPUImage比我想象的要强大的多。我本想切换到Swift的版本。功力尚未达到，我又切回来了。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/07/27/GPUImage学习笔记（4）/" data-id="ck28skzq900080cz656xjpq8k" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/08/27/iOS逆向开发学习笔记（1）/" data-id="ck30vt4pt000rehz6dbxcct9a" class="article-share-link">Share</a>
       
       
     </footer>
@@ -604,7 +620,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
     </div>
   </div>
 
@@ -615,6 +631,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2019/11/16/记一次MethodSwizzle的bugfix/">记一次MethodSwizzle的bugfix</a>
+          </li>
         
           <li>
             <a href="/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/">MacBook Pro(Retina, 13-inch, Early 2015)更换ssd</a>
@@ -630,10 +650,6 @@
         
           <li>
             <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
-          </li>
-        
-          <li>
-            <a href="/2019/03/07/git-handbook/">git handbook</a>
           </li>
         
       </ul>

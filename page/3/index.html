@@ -61,6 +61,127 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-SDWebImage源码学习" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/17/SDWebImage源码学习/" class="article-date">
+  <time datetime="2018-04-17T09:34:22.000Z" itemprop="datePublished">2018-04-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/17/SDWebImage源码学习/">SDWebImage源码学习</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在刚刚接触iOS的时候就听说SDWebImage的大名，在第一家面试的时候也被问到过这个库的问题，后来或多或少的读过其源码。如今作为一个Developer已经三年了，来好好总结一下这个OCStar第二名。</p>
+<p>首先在心中问一个问题，为什么要使用这个库？也许是因为他名气很大Star很多，也许是因为原来项目中就使用了这个库，也许是因为面试被虐知道了这个库。</p>
+<p>他解决了什么问题？</p>
+<ol>
+<li>下载网络图片</li>
+<li>Cell中复用问题</li>
+<li>内存缓存和硬盘缓存</li>
+<li>强制解码，增加渲染速度</li>
+</ol>
+<p>正常来说我们都是从UIImageView+WebCache.h这个文件开始的</p>
+<p>这个Api是我个人使用最多的了。本质上都是调用下面这个api<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (void)sd_setImageWithURL:(nullable NSURL *)url placeholderImage:(nullable UIImage *)placeholder</span><br></pre></td></tr></table></figure></p>
+<p>一层一层点进去，内部调用了UIView的一个Category的方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">- (void)sd_internalSetImageWithURL:(nullable NSURL *)url</span><br><span class="line">                  placeholderImage:(nullable UIImage *)placeholder</span><br><span class="line">                           options:(SDWebImageOptions)options</span><br><span class="line">                      operationKey:(nullable NSString *)operationKey</span><br><span class="line">                     setImageBlock:(nullable SDSetImageBlock)setImageBlock</span><br><span class="line">                          progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock</span><br><span class="line">                         completed:(nullable SDExternalCompletionBlock)completedBlock</span><br><span class="line">                           context:(nullable NSDictionary&lt;NSString *, id&gt; *)context;</span><br></pre></td></tr></table></figure>
+<p>先别晕，当一个框架暴露的接口越是简单，灵活，他的内部一定是复杂的。因为他帮你做了那些你该做的工作。这个方法是很长的，虽然这不符合我的50lines的规矩，但是规矩是人定的。</p>
+<ol>
+<li>第一步先取这个operationKey，正常我们使用的时候并不会设置这个，所以它默认应该是一个@”UIImageView”的字符串</li>
+<li>cancel掉当前这个UIImageView上正在下载的图片，大概就是这个UIView lazy的方式关联一个NSMapTable(相当于是字典)，字典的key其实这就是类名，value为下载的operation，这个operation就是可以cancel的, cancel了之后再去下载下一张图片，也就不会出现一些复用导致的bug。（最经典的先下载的图片，因为网络后下载完成，覆盖上去导致错乱）</li>
+<li>把图片的地址也关联到这个UIView上去</li>
+<li>判断options中是否有延迟placeholder的设置项，没有的话就去设置placeholder，当然这其中有一个group 和 主线程的内容，先放一放</li>
+<li>判断url url为空则移除indicator, 执行completedBlock抛出错误</li>
+<li>url不为空，根据需要显示indicator。</li>
+<li>重置图片下载进度</li>
+<li>尝试从上下文中获取manager, 或者取单例的sharedManager</li>
+<li>设置一个progress的block</li>
+<li>manager根据url options等参数去下载图片，并返回一个operaion对象,将这个对象set到关联的NSMapTable中去。</li>
+<li>这里的weak strong dance。首先检查sself，多线程的情况可能释放，移除indicator,设置progress的异常情况</li>
+<li>根据options,不禁止自动设置图片，延迟设置placeholder，setNeedsLayout</li>
+<li>设置image, 和 imageData</li>
+<li>设置imageView的image,执行completedBlock</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (id &lt;SDWebImageOperation&gt;)loadImageWithURL:(nullable NSURL *)url</span><br><span class="line">                                     options:(SDWebImageOptions)options</span><br><span class="line">                                    progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock</span><br><span class="line">                                   completed:(nullable SDInternalCompletionBlock)completedBlock</span><br></pre></td></tr></table></figure>
+<ol>
+<li>检查是否completedBlock</li>
+<li>检查URL的参数类型。NSString，NSURL</li>
+<li>创建一个operation，设置他的manager为单例</li>
+<li>看url 是否为失败的url</li>
+<li>绝对url不存在，或者（是失败的url且不重试）, 调用完成，并返回operation</li>
+<li>加锁并往runningOperations中增加一个operation</li>
+<li>获取cacheKey</li>
+<li>获取cacheOptions, 注意一下这里的位操作，学习了get</li>
+<li><p>通过imageCache 获得一个cacheOperaion对象，</p>
+<ol>
+<li>cache完成之后的回调里，首先是weak strong dance</li>
+<li>判空，或者已经取消的情况下从running中移除, return</li>
+<li>根据options判断是否需要下载，else if有cacheImage的情况，else 没有cache并且被delegate cancel的情况</li>
+<li>如果cache中找到了对应的图片，但是options中是refreshCache的设置，首先通知一下外部cacheType</li>
+<li>设置downloadOperations</li>
+<li><p>设置operation的downloadToken</p>
+<ol>
+<li>下载完成之后判空，判cancel</li>
+<li>判断错误，记录错误</li>
+<li>下载成功根据options 移除错误</li>
+<li>根据options 是否保存到disk</li>
+<li>scaledImageForKey</li>
+<li>根据不同的case 去storeImage</li>
+<li>移除operation</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>return这个operation</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (nullable NSOperation *)queryCacheOperationForKey:(nullable NSString *)key options:(SDImageCacheOptions)options done:(nullable SDCacheQueryCompletedBlock)doneBlock &#123;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>判断key</li>
+<li>从内存中寻找image</li>
+<li>从disk中寻找diskData</li>
+<li>从diskData–&gt;diskImage(创建，旋转，缩放，解码)</li>
+<li>塞到内存缓存中去</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (nullable SDWebImageDownloadToken *)downloadImageWithURL:(nullable NSURL *)url</span><br><span class="line">                                                   options:(SDWebImageDownloaderOptions)options</span><br><span class="line">                                                  progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock</span><br><span class="line">                                                 completed:(nullable SDWebImageDownloaderCompletedBlock)completedBlock</span><br></pre></td></tr></table></figure>
+<ol>
+<li>使用了一个weak</li>
+<li>return DownloadToken<br>这是可以看到一个奇怪的方式，createCallback,创建request, 设置各种参数创建自定义的operation</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (nullable SDWebImageDownloadToken *)addProgressCallback:(SDWebImageDownloaderProgressBlock)progressBlock</span><br><span class="line">                                           completedBlock:(SDWebImageDownloaderCompletedBlock)completedBlock</span><br><span class="line">                                                   forURL:(nullable NSURL *)url</span><br><span class="line">                                           createCallback:(SDWebImageDownloaderOperation *(^)(void))createCallback</span><br></pre></td></tr></table></figure>
+<ol>
+<li>判断url</li>
+<li>加锁，取出operation,如果没有就创建operation,设置一个完成的回调，将operation添加到queue中去，加入队列则开始下载了。</li>
+<li>创建一个token,并返回</li>
+</ol>
+<p>此处，多线程的自定义operation操作很棒！值得深入学习！</p>
+<p>这其中<br>SDWebImageDownloader ==== AFHTTPSessionManager<br>SDWebImageDownloaderOperation ===== AFURLSessionManagerTaskDelegate</p>
+<p>其中AFNetworking中是维护了一个可变字典，SDWebImage中是遍历downQueue中的operation, 最终使用的都是dataTaskIdentifiter,直观感觉还是字典更快一些。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/04/17/SDWebImage源码学习/" data-id="ck30vt4pd000hehz6iffpegr9" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-Autolayout学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/03/11/Autolayout学习笔记/" class="article-date">
@@ -131,7 +252,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/03/11/Autolayout学习笔记/" data-id="ck28skzpm00000cz6936lpb0x" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/03/11/Autolayout学习笔记/" data-id="ck30vt4nu0001ehz63582x6sf" class="article-share-link">Share</a>
       
       
     </footer>
@@ -240,7 +361,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/" data-id="ck28skzpz00030cz6wndv0zg3" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/" data-id="ck30vt4o70003ehz6qsjl8av5" class="article-share-link">Share</a>
       
       
     </footer>
@@ -352,7 +473,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/02/27/AFNetworking学习笔记/" data-id="ck28skzrf000x0cz67rg8r6sx" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/02/27/AFNetworking学习笔记/" data-id="ck30vt4qb000yehz6vp4ckwkm" class="article-share-link">Share</a>
       
       
     </footer>
@@ -391,7 +512,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/27/类似股票数据表格效果/" data-id="ck28skzr5000v0cz6lxto3o4z" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/10/27/类似股票数据表格效果/" data-id="ck30vt4py000vehz6c93uu5cn" class="article-share-link">Share</a>
       
       
     </footer>
@@ -432,7 +553,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/12/OC之事件传递响应链/" data-id="ck28skzql000e0cz67xbmfrdx" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/10/12/OC之事件传递响应链/" data-id="ck30vt4pa000eehz6wfqpk2a4" class="article-share-link">Share</a>
       
       
     </footer>
@@ -490,7 +611,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" data-id="ck28skzqx000o0cz61s3rgk4s" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" data-id="ck30vt4pp000pehz6zs4qg7jg" class="article-share-link">Share</a>
       
       
     </footer>
@@ -544,7 +665,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="ck28skzqn000g0cz6jprozj50" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="ck30vt4pb000fehz6k8nnfkfx" class="article-share-link">Share</a>
       
       
     </footer>
@@ -614,7 +735,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之消息与转发/" data-id="ck28skzqm000f0cz6fo6xo722" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/28/OC之消息与转发/" data-id="ck30vt4pd000gehz6r2hps7o7" class="article-share-link">Share</a>
       
       
     </footer>
@@ -673,84 +794,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之GCD和NSOperation/" data-id="ck28skzqi000c0cz69w5rbxr8" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-OC之Runloop" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/09/28/OC之Runloop/" class="article-date">
-  <time datetime="2017-09-28T05:30:15.000Z" itemprop="datePublished">2017-09-28</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/28/OC之Runloop/">OC之Runloop</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="runloop简介"><a href="#runloop简介" class="headerlink" title="runloop简介"></a>runloop简介</h2><p>runloop是线程的基础支撑。一般情况下，一个线程执行任务，执行完成后线程就退出了, 然而runloop能使线程随时处理时间但是不退出。runloop的目的是使线程在没有事情可做时进入休眠状态，避免CPU空转。<br>每个具体的runloop就是一个eventloop循环。</p>
-<h2 id="runloop的Thread"><a href="#runloop的Thread" class="headerlink" title="runloop的Thread"></a>runloop的Thread</h2><p>只有 main thread 的 runloop 默认是开启的，其他线程如果希望持续存活下去，就需要手动开启runloop。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">NSRunLoop *runLoop = [NSRunLoop currentRunLoop];                    //1. lazy的方式获得runloop</span><br><span class="line">[runLoop addPort: [NSMachPort port] forMode:NSDefaultRunLoopMode];  //2. 至少有一个Timer,Observer/Source</span><br><span class="line">[runLoop run];                                                      //3. 开启runloop</span><br></pre></td></tr></table></figure>
-<p>需要开启的情况</p>
-<ol>
-<li>需要通过端口或自定义输入源与其他线程通讯；</li>
-<li>在线程中需要使用定时器；</li>
-<li>在线程上使用performSelector系列方法；</li>
-<li>需要线程周期性地执行一些任务</li>
-</ol>
-<h2 id="RunLoop-和-RunLoopMode"><a href="#RunLoop-和-RunLoopMode" class="headerlink" title="RunLoop 和 RunLoopMode"></a>RunLoop 和 RunLoopMode</h2><p>struct __CFRunLoopMode {<br>    CFStringRef _name;<br>    CFMutableSetRef _sources0;<br>    CFMutableSetRef _sources1;<br>    CFMutableArrayRef _observers;<br>    CFMutableArrayRef _timers;<br>};</p>
-<p>struct __CFRunLoop {<br>    CFMutableSetRef _commonModes;           // 字符串的集合(common)<br>    CFMutableSetRef _commonModeItems;       // timer加到这里去，会被copy到所有common的mode<br>    CFRunLoopModeRef _currentMode;          //<br>    CFMutableSetRef _modes;                 // mode的集合（default,tracking）<br>};</p>
-<h2 id="runloop的Modes"><a href="#runloop的Modes" class="headerlink" title="runloop的Modes"></a>runloop的Modes</h2><p>NSDefaultRunLoopMode<br>NSEventTrackingRunLoopMode<br>NSRunLoopCommonModes包含后者</p>
-<p>关于Timer在滚动的时候不执行的<br>ScrollView滚动时，系统会将main runloop切换到NSEventTrackingRunLoopMode。<br><code>Use the scheduledTimerWithTimeInterval:invocation:repeats: or scheduledTimerWithTimeInterval:target:selector:userInfo:repeats: class method to create the timer and schedule it on the current run loop in the default mode.</code><br>所以需要将[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];</p>
-<h2 id="runloop处理什么"><a href="#runloop处理什么" class="headerlink" title="runloop处理什么"></a>runloop处理什么</h2><p>AutoreleasePool<br>事件响应（苹果注册了一个 Source1 (基于 mach port 的) 用来接收系统事件）<br>手势识别（）<br>界面更新(把uiview和calayer标记为未处理)<br>timer事件<br>PerformSelecter(内部通过一个timer)</p>
-<h2 id="update-2019-05-19-源码记录。"><a href="#update-2019-05-19-源码记录。" class="headerlink" title="update 2019.05.19 源码记录。"></a>update 2019.05.19 源码记录。</h2><h2 id="CFRunLoopActivity"><a href="#CFRunLoopActivity" class="headerlink" title="CFRunLoopActivity"></a>CFRunLoopActivity</h2><p>kCFRunLoopEntry<br>kCFRunLoopBeforeTimers<br>kCFRunLoopBeforeSources<br>kCFRunLoopBeforeWaiting<br>kCFRunLoopAfterWaiting<br>kCFRunLoopExit<br>kCFRunLoopAllActivities</p>
-<h2 id="Modes"><a href="#Modes" class="headerlink" title="Modes"></a>Modes</h2><p>kCFRunLoopDefaultMode<br>kCFRunLoopCommonModes</p>
-<h2 id="CFRunLoop不能创建，只能通过GetMain和GetCurrent获取"><a href="#CFRunLoop不能创建，只能通过GetMain和GetCurrent获取" class="headerlink" title="CFRunLoop不能创建，只能通过GetMain和GetCurrent获取"></a>CFRunLoop不能创建，只能通过GetMain和GetCurrent获取</h2><p>CF_EXPORT CFRunLoopRef CFRunLoopGetCurrent(void);<br>CF_EXPORT CFRunLoopRef CFRunLoopGetMain(void);</p>
-<p>CF_EXPORT CFRunLoopRef _CFRunLoopGet0(pthread_t t);</p>
-<ol>
-<li>初始化字段 key为pthread, value为runloop。</li>
-<li>预先放一个mainLoop</li>
-<li>再找对应的runLoop，没有则创建一个</li>
-</ol>
-<p>static CFRunLoopRef __CFRunLoopCreate(pthread_t t);</p>
-<ol>
-<li>默认创建kCFRunLoopDefaultMode，并在CommonModes。</li>
-</ol>
-<h2 id="根据ModeName创建CFRunLoopMode"><a href="#根据ModeName创建CFRunLoopMode" class="headerlink" title="根据ModeName创建CFRunLoopMode"></a>根据ModeName创建CFRunLoopMode</h2><p>static CFRunLoopModeRef __CFRunLoopFindMode(CFRunLoopRef rl, CFStringRef modeName, Boolean create)</p>
-<h2 id="加一个Mode到CommonModes"><a href="#加一个Mode到CommonModes" class="headerlink" title="加一个Mode到CommonModes"></a>加一个Mode到CommonModes</h2><p>1 现将ModeName 加到_commonModes<br>2 将_commonModeItems 同步到，这新的ModeName下。</p>
-<h2 id="加一个ModeItem到CommonModes中"><a href="#加一个ModeItem到CommonModes中" class="headerlink" title="加一个ModeItem到CommonModes中"></a>加一个ModeItem到CommonModes中</h2><p>1 将 modeItem 加到 _commonModeItems中<br>2 将 modeItem 同步加到所有的_commonModes中</p>
-<h3 id="CFRunLoop执行Block"><a href="#CFRunLoop执行Block" class="headerlink" title="CFRunLoop执行Block"></a>CFRunLoop执行Block</h3><p>void CFRunLoopPerformBlock(CFRunLoopRef rl, CFTypeRef mode, void (^block)(void))</p>
-<h3 id="Source-Source0和Source1"><a href="#Source-Source0和Source1" class="headerlink" title="Source (Source0和Source1)"></a>Source (Source0和Source1)</h3><h3 id="Observer"><a href="#Observer" class="headerlink" title="Observer"></a>Observer</h3><h3 id="Timer"><a href="#Timer" class="headerlink" title="Timer"></a>Timer</h3><h2 id="CFRunLoopRun"><a href="#CFRunLoopRun" class="headerlink" title="CFRunLoopRun"></a>CFRunLoopRun</h2><p>CF_EXPORT SInt32 CFRunLoopRunInMode(CFStringRef mode, CFTimeInterval seconds, Boolean returnAfterSourceHandled);</p>
-<h3 id="CFRunLoopRef"><a href="#CFRunLoopRef" class="headerlink" title="CFRunLoopRef"></a>CFRunLoopRef</h3><p>typedef struct <strong>CFRunLoop * CFRunLoopRef;<br>struct </strong>CFRunLoop {<br>    CFRuntimeBase _base;<br>    pthread_mutex_t _lock;            /<em> locked for accessing mode list </em>/<br>    __CFPort _wakeUpPort;            // used for CFRunLoopWakeUp<br>    Boolean _unused;<br>    volatile _per_run_data <em>_perRunData;              // reset for runs of the run loop<br>    pthread_t _pthread;<br>    uint32_t _winthread;<br>    CFMutableSetRef _commonModes;<br>    CFMutableSetRef _commonModeItems;<br>    CFRunLoopModeRef _currentMode;<br>    CFMutableSetRef _modes;<br>    struct _block_item </em>_blocks_head;<br>    struct _block_item *_blocks_tail;<br>    CFAbsoluteTime _runTime;<br>    CFAbsoluteTime _sleepTime;<br>    CFTypeRef _counterpart;<br>};</p>
-<p>_commonModes 是个字符串的集合（default,uitrack…）<br>_commonModeItems 是个（Source,Timer,Observer）的集合<br>_modes 是mode的集合</p>
-<h3 id="CFRunLoopModeRef"><a href="#CFRunLoopModeRef" class="headerlink" title="CFRunLoopModeRef"></a>CFRunLoopModeRef</h3><p>typedef struct <strong>CFRunLoopMode *CFRunLoopModeRef;<br>struct </strong>CFRunLoopMode {<br>    CFRuntimeBase _base;<br>    pthread_mutex_t _lock;    /<em> must have the run loop locked before locking this </em>/<br>    CFStringRef _name;<br>    Boolean _stopped;<br>    char _padding[3];<br>    CFMutableSetRef _sources0;<br>    CFMutableSetRef _sources1;<br>    CFMutableArrayRef _observers;<br>    CFMutableArrayRef _timers;<br>    CFMutableDictionaryRef _portToV1SourceMap;<br>    __CFPortSet _portSet;<br>    CFIndex _observerMask;</p>
-<p>#if USE_MK_TIMER_TOO<br>    mach_port_t _timerPort;<br>    Boolean _mkTimerArmed;</p>
-<p>#endif<br>    uint64_t _timerSoftDeadline; /<em> TSR </em>/<br>    uint64_t _timerHardDeadline; /<em> TSR </em>/<br>};</p>
-<h3 id="CFRunLoopSourceRef"><a href="#CFRunLoopSourceRef" class="headerlink" title="CFRunLoopSourceRef"></a>CFRunLoopSourceRef</h3><p>typedef struct <strong>CFRunLoopSource * CFRunLoopSourceRef;<br>struct </strong>CFRunLoopSource {<br>    CFRuntimeBase _base;<br>    uint32_t _bits;<br>    pthread_mutex_t _lock;<br>    CFIndex _order;            /<em> immutable </em>/<br>    CFMutableBagRef _runLoops;<br>    union {<br>    CFRunLoopSourceContext version0;    /<em> immutable, except invalidation </em>/<br>        CFRunLoopSourceContext1 version1;    /<em> immutable, except invalidation </em>/<br>    } _context;<br>};</p>
-<h3 id="CFRunLoopObserverRef"><a href="#CFRunLoopObserverRef" class="headerlink" title="CFRunLoopObserverRef"></a>CFRunLoopObserverRef</h3><p>typedef struct <strong>CFRunLoopObserver * CFRunLoopObserverRef;<br>struct </strong>CFRunLoopObserver {<br>    CFRuntimeBase _base;<br>    pthread_mutex_t _lock;<br>    CFRunLoopRef _runLoop;<br>    CFIndex _rlCount;<br>    CFOptionFlags _activities;        /<em> immutable </em>/<br>    CFIndex _order;            /<em> immutable </em>/<br>    CFRunLoopObserverCallBack _callout;    /<em> immutable </em>/<br>    CFRunLoopObserverContext _context;    /<em> immutable, except invalidation </em>/<br>};</p>
-<h3 id="CFRunLoopTimerRef"><a href="#CFRunLoopTimerRef" class="headerlink" title="CFRunLoopTimerRef"></a>CFRunLoopTimerRef</h3><p>typedef struct CF_BRIDGED_MUTABLE_TYPE(NSTimer) <strong>CFRunLoopTimer * CFRunLoopTimerRef;<br>struct </strong>CFRunLoopTimer {<br>    CFRuntimeBase _base;<br>    uint16_t _bits;<br>    pthread_mutex_t _lock;<br>    CFRunLoopRef _runLoop;<br>    CFMutableSetRef _rlModes;<br>    CFAbsoluteTime _nextFireDate;<br>    CFTimeInterval _interval;        /<em> immutable </em>/<br>    CFTimeInterval _tolerance;          /<em> mutable </em>/<br>    uint64_t _fireTSR;            /<em> TSR units </em>/<br>    CFIndex _order;            /<em> immutable </em>/<br>    CFRunLoopTimerCallBack _callout;    /<em> immutable </em>/<br>    CFRunLoopTimerContext _context;    /<em> immutable, except invalidation </em>/<br>};</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之Runloop/" data-id="ck28skzqj000d0cz6rur2xfk1" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/28/OC之GCD和NSOperation/" data-id="ck30vt4p5000cehz63cd42v4g" class="article-share-link">Share</a>
       
       
     </footer>
@@ -781,7 +825,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
     </div>
   </div>
 
@@ -792,6 +836,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2019/11/16/记一次MethodSwizzle的bugfix/">记一次MethodSwizzle的bugfix</a>
+          </li>
         
           <li>
             <a href="/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/">MacBook Pro(Retina, 13-inch, Early 2015)更换ssd</a>
@@ -807,10 +855,6 @@
         
           <li>
             <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
-          </li>
-        
-          <li>
-            <a href="/2019/03/07/git-handbook/">git handbook</a>
           </li>
         
       </ul>
