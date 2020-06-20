@@ -61,6 +61,47 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-常见iOSUI方案-md" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/06/20/常见iOSUI方案-md/" class="article-date">
+  <time datetime="2020-06-20T08:58:41.000Z" itemprop="datePublished">2020-06-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/06/20/常见iOSUI方案-md/">常见iOSUI方案.md</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="类似于网易云音乐歌词上下渐变"><a href="#类似于网易云音乐歌词上下渐变" class="headerlink" title="类似于网易云音乐歌词上下渐变"></a>类似于网易云音乐歌词上下渐变</h2><p>顶部和底部都有一个渐变的效果，所以很自然的想到CAGradientLayer。<br>思路1。创建一个CAGradientLayer，覆盖在歌词上。不过遇到的问题就是，颜色无法设置。无论设置黑色还是白色，效果总是不尽如人意。<br>经过仔细研究之后发现。mask，maskView可以完成这个效果<br>思路2. 使用CAGradientLayer创建一个mask。本质上mask不同区域的alpha值，透出的效果就是想要的。UIView+mask的关系，就是mask中alpha中，应用在UIView上。</p>
+<h2 id="ExcelView的实现"><a href="#ExcelView的实现" class="headerlink" title="ExcelView的实现"></a>ExcelView的实现</h2><p>在写业务的时候有写一个简单表格的需求。要求可以下拉刷新，上拉加载更多。顶部可以吸附，左侧可以吸附，右侧可以横划。<br>思路1。第一直觉是用两个UITableView联动，左侧固定，右侧整体放在一个scrollView上这样就可以左右滑动。在不需要刷新的场景下就OK了。<br>但是有刷新后就不太好处理了。于是使用了一些黑科技（越狱看了一些股票软件<br>思路2。可以使用一个tableView。<br>    【上下拉刷新】因为在一个UITableView，直接MJRefresh即可。<br>    【顶部吸附】SectionHeader就可以完成。<br>    【右侧横滑】这个UITableView的宽度很长。是excel所有列展开平铺。然后整体放在一个UIScrollView上达到横划效果。<br>    【左侧吸附】是通过，监听UIScrollView的offset，直接改变Cell中吸附View的x值。</p>
+<h2 id="下拉放大"><a href="#下拉放大" class="headerlink" title="下拉放大"></a>下拉放大</h2><p><a href="https://github.com/apping/APParallaxHeader" target="_blank" rel="noopener">https://github.com/apping/APParallaxHeader</a></p>
+<h2 id="个人主页效果"><a href="#个人主页效果" class="headerlink" title="个人主页效果"></a>个人主页效果</h2><p>个人觉得QQ联系人列表的效果是见过比较好的。中间吸附效果，每个列表都可以记录自己的offset，不会因为切换丢失。从顶部到底部都很顺滑。<br><a href="https://github.com/maxep/MXParallaxHeader" target="_blank" rel="noopener">https://github.com/maxep/MXParallaxHeader</a></p>
+<h2 id="抖音上下滑切换视频（页面）效果"><a href="#抖音上下滑切换视频（页面）效果" class="headerlink" title="抖音上下滑切换视频（页面）效果"></a>抖音上下滑切换视频（页面）效果</h2><p>一开始想得很复杂，其实UITableView是支持的。<br>核心就是说，UITableViewCellHeight为屏幕的高度。<br>pagingEnabled属性设置为YES。<br>在UITableViewDelegate的代理方法中，监听停止等等做处理。</p>
+<h2 id="音视频处理"><a href="#音视频处理" class="headerlink" title="音视频处理"></a>音视频处理</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    self.session = [[AVCaptureSession alloc] init];</span><br><span class="line">    self.previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSessionWithNoConnection:self.session];</span><br><span class="line">    self.device = [self defaultCamera];</span><br><span class="line">    self.input = [[AVCaptureDeviceInput alloc] initWithDevice:self.device error:nil];</span><br><span class="line">    if ([self.session canAddInput:self.input]) &#123;</span><br><span class="line">        [self.session addInputWithNoConnections:self.input];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    AVCaptureConnection *con = [AVCaptureConnection connectionWithInputPort:self.input.ports.firstObject videoPreviewLayer:self.previewLayer];</span><br><span class="line">    if ([self.session canAddConnection:con]) &#123;</span><br><span class="line">        [self.session addConnection:con];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    [self.session startRunning];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (AVCaptureDevice *)defaultCamera &#123;</span><br><span class="line">    AVCaptureDevice *device;</span><br><span class="line">    device = [AVCaptureDevice defaultDeviceWithDeviceType: AVCaptureDeviceTypeBuiltInDuoCamera</span><br><span class="line">                                                mediaType: AVMediaTypeVideo</span><br><span class="line">                                                 position: AVCaptureDevicePositionFront];</span><br><span class="line">    if (device != nil) &#123;</span><br><span class="line">        return device;</span><br><span class="line">    &#125;</span><br><span class="line">    device = [AVCaptureDevice defaultDeviceWithDeviceType: AVCaptureDeviceTypeBuiltInWideAngleCamera</span><br><span class="line">                                                mediaType: AVMediaTypeVideo</span><br><span class="line">                                                 position: AVCaptureDevicePositionFront];</span><br><span class="line">    if (device != nil) &#123;</span><br><span class="line">        return device;</span><br><span class="line">    &#125;</span><br><span class="line">    return nil;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 获取前置摄像头iOS10</span><br><span class="line">    AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInWideAngleCamera] mediaType:AVMediaTypeVideo position:(AVCaptureDevicePositionFront)];</span><br><span class="line">    for (AVCaptureDevice *device in session.devices) &#123;</span><br><span class="line">        NSLog(@&quot;%@ %@&quot;, device.localizedName, device.deviceType);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/06/20/常见iOSUI方案-md/" data-id="ckbnfbfdu000wh2j773jy1b1k" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-记一次MethodSwizzle的bugfix" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/11/16/记一次MethodSwizzle的bugfix/" class="article-date">
@@ -102,7 +143,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/11/16/记一次MethodSwizzle的bugfix/" data-id="ck30w6hnh000vkhz6gv1ab00s" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2019/11/16/记一次MethodSwizzle的bugfix/" data-id="ckbnfbfds000uh2j7cxsqu4zw" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -164,7 +205,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/" data-id="ck30w6hmn000akhz6kvkhocba" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/" data-id="ckbnfbfd3000ah2j78klo2zm7" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -214,7 +255,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/10/16/iOS证书和推送/" data-id="ck30w6hna000pkhz6mae4teft" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2019/10/16/iOS证书和推送/" data-id="ckbnfbfdn000ph2j7bz4j58di" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -262,7 +303,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/06/06/CocoaPods/" data-id="ck30w6hma0002khz6nvvm3dpn" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2019/06/06/CocoaPods/" data-id="ckbnfbfcn0002h2j7rf2v5tcc" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -310,7 +351,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/04/07/函数小计和数据结构/" data-id="ck30w6hng000ukhz6fzwu4atp" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2019/04/07/函数小计和数据结构/" data-id="ckbnfbfdt000vh2j787pjjwdw" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -371,7 +412,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/03/07/git-handbook/" data-id="ck30w6hn6000lkhz6cq1m20gd" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2019/03/07/git-handbook/" data-id="ckbnfbfdj000lh2j72bc87hio" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -411,7 +452,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/12/29/闲聊/" data-id="ck30w6hnk000xkhz6et3ekzt8" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2018/12/29/闲聊/" data-id="ckbnfbfdw000yh2j7k960sw32" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -490,7 +531,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/10/25/iOS逆向开发学习笔记（2）/" data-id="ck30w6hnc000rkhz6i6jb15lp" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2018/10/25/iOS逆向开发学习笔记（2）/" data-id="ckbnfbfdp000rh2j7pl6sj6to" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -529,65 +570,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/09/26/中秋以后/" data-id="ck30w6hne000tkhz6u0s1rpxi" class="article-share-link">Partager</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-iOS逆向开发学习笔记（1）" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/08/27/iOS逆向开发学习笔记（1）/" class="article-date">
-  <time datetime="2018-08-27T09:07:35.000Z" itemprop="datePublished">2018-08-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/08/27/iOS逆向开发学习笔记（1）/">iOS逆向开发学习笔记（1）</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>最近进入到一个新的领域，iOS逆向。哇，听起来好像很高大上的样子呢。这个还是比较有门槛的，前期主要是要学习一些工具。</p>
-<p>前提条件</p>
-<ol>
-<li>虚拟机+win7+爱思助手（越狱软件）</li>
-<li>可越狱的iPhone设备</li>
-<li>thoes框架（可以编写插件代码注入）</li>
-<li>iFunBox (可以copy内容至指定Media文件夹)</li>
-<li>Charles (网络工具)</li>
-<li>Cycript/Reveal 主要用来看页面层级</li>
-<li>老版本的Xcode7.1 执行 xcode-select -s app的路径</li>
-<li>熟练使用linux/unix命令mv, cp, cat, grep, mkdir, rm 等, 使用vim, ssh</li>
-</ol>
-<p>安装<br>Cydia，越狱软件的AppStore。</p>
-<ol>
-<li>Filza</li>
-<li>Substrate Safe Mode</li>
-<li>Dropbear</li>
-<li>Cycript</li>
-<li>ssl-kill-switch2</li>
-</ol>
-<p>Thoes运行一个项目就可以跑起来了。</p>
-<p>还没入门，任重道远。。fight!</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/08/27/iOS逆向开发学习笔记（1）/" data-id="ck30w6hnb000qkhz65vhsbbk1" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2018/09/26/中秋以后/" data-id="ckbnfbfdr000th2j76flujdoi" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -618,7 +601,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
     </div>
   </div>
 
@@ -629,6 +612,10 @@
     <h3 class="widget-title">Articles récents</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/06/20/常见iOSUI方案-md/">常见iOSUI方案.md</a>
+          </li>
         
           <li>
             <a href="/2019/11/16/记一次MethodSwizzle的bugfix/">记一次MethodSwizzle的bugfix</a>
@@ -646,10 +633,6 @@
             <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
           </li>
         
-          <li>
-            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -662,7 +645,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 hust_destiny<br>
+      &copy; 2020 hust_destiny<br>
       Propulsé by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>

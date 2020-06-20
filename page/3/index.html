@@ -61,6 +61,64 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-iOS中的锁" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/26/iOS中的锁/" class="article-date">
+  <time datetime="2018-04-26T12:11:20.000Z" itemprop="datePublished">2018-04-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/26/iOS中的锁/">iOS中的锁</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>首先客观的来说平时的工作中对锁的理解并不是很深刻，只是在之前面试的时候简单了解过，锁的用处主要是保证线程安全，死锁的场景。</p>
+<ol>
+<li>初次接触的时候是在属性关键字中。nonatomic<br>系统会在setter和getter的方法中加锁。也就是说，如果操作值类型那么OK没问题，但是如果操作一个MutableArray,那么大多数情况不是去set或者get这个arra,而是去add或者remove这个容易，所以这个锁并没有左右。锁只是保证了这个指针变量本身，却不保证其指向的内容线程安全<br>。</li>
+<li><p>后来在项目中看见有同学使用 @synchronized (self)的写法</p>
+</li>
+<li><p>后来也看见过NSLock</p>
+</li>
+<li><p>直到今天看SDWebImage的时候看到这个宏定义，我觉得不总结一下，说不过去了哈。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LOCK(lock) dispatch_semaphore_wait(lock, DISPATCH_TIME_FOREVER);</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> UNLOCK(lock) dispatch_semaphore_signal(lock);</span></span><br><span class="line"></span><br><span class="line">lock = dispatch_semaphore_create(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>atomic<br>dispatch_semaphore_t<br>pthread_mutex<br>pthread_mutex(recursive)<br>NSLock 是对pthread_mutex的封装，主要性能差别在用方法调用导致，其实并不大<br>NSCondition<br>NSRecursiveLock<br>NSConditionLock<br>@synchronized 这个后面只需要传递一个OC对象，并把这个对象当成锁来使用，并不是锁住这个对象的意思（反正我之前是理解成锁住整个self了，手动滑稽）</p>
+<p>什么是自旋锁？while忙等，注意优先级反转的问题（低优先级线程拿到锁，高优先级busy-wait消耗CPU时间，导致低优先级线程拿不到CPU时间，无法完成任务无法释放锁）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">bool</span> lock = <span class="literal">false</span>; <span class="comment">// 一开始没有锁上，任何线程都可以申请锁  </span></span><br><span class="line"><span class="keyword">do</span> &#123;  </span><br><span class="line">    <span class="keyword">while</span>(lock); <span class="comment">// 如果 lock 为 true 就一直死循环，相当于申请锁</span></span><br><span class="line">    lock = <span class="literal">true</span>; <span class="comment">// 挂上锁，这样别的线程就无法获得锁</span></span><br><span class="line">        Critical section  <span class="comment">// 临界区</span></span><br><span class="line">    lock = <span class="literal">false</span>; <span class="comment">// 相当于释放锁，这样别的线程可以进入临界区</span></span><br><span class="line">        Reminder section <span class="comment">// 不需要锁保护的代码        </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>什么是互斥锁？pthread_mutex<br>PTHREAD_MUTEX_NORMAL<br>PTHREAD_MUTEX_ERRORCHECK==&gt;NSLock<br>PTHREAD_MUTEX_RECURSIVE==&gt;NSRecursiveLock</p>
+<p>什么是递归锁？递归锁在被同一线程重复获取时不会产生死锁 NSRecursiveLock @synchronized<br>什么是信号量？<br>原理是首先将信号量减1，判断是否大于0，大于0则无需等待直接，反之则使线程进入休眠状态，让出时间片。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">sem_wait</span> <span class="params">(<span class="keyword">sem_t</span> *sem)</span> </span>&#123;  </span><br><span class="line">  <span class="keyword">int</span> *futex = (<span class="keyword">int</span> *) sem;</span><br><span class="line">  <span class="keyword">if</span> (atomic_decrement_if_positive (futex) &gt; <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> err = lll_futex_wait (futex, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<h3 id="死锁场景"><a href="#死锁场景" class="headerlink" title="死锁场景"></a>死锁场景</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">NSLog(@<span class="string">"1"</span>); <span class="comment">// 任务1</span></span><br><span class="line">dispatch_sync(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">    NSLog(@<span class="string">"2"</span>); <span class="comment">// 任务2</span></span><br><span class="line">&#125;);</span><br><span class="line">NSLog(@<span class="string">"3"</span>); <span class="comment">// 任务3</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>首先在主线程中 任务1毫无疑问肯定执行。</li>
+<li>接着是一个同步函数，单线程中同步，将任务2添加到主队列的末尾。在主队列中 head-任务1-同步函数-任务3-任务2-tail。</li>
+<li>任务3需要等待同步函数返回才会执行。任务2也得等待任务3执行完。相互等待死锁。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/04/26/iOS中的锁/" data-id="ckbnfbfdl000nh2j7bddbr2m0" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-SDWebImage源码学习" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/04/17/SDWebImage源码学习/" class="article-date">
@@ -172,7 +230,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/04/17/SDWebImage源码学习/" data-id="ck30w6hn1000gkhz61grwmljq" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2018/04/17/SDWebImage源码学习/" data-id="ckbnfbfde000gh2j7b5a58ajb" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -252,7 +310,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/03/11/Autolayout学习笔记/" data-id="ck30w6hm70001khz6yz3p9xir" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2018/03/11/Autolayout学习笔记/" data-id="ckbnfbfck0001h2j788irz0hv" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -361,7 +419,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/" data-id="ck30w6hmc0003khz67bvppj87" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/" data-id="ckbnfbfcp0003h2j77blmbm4l" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -473,7 +531,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/02/27/AFNetworking学习笔记/" data-id="ck30w6ho0000ykhz6otij8gkg" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2018/02/27/AFNetworking学习笔记/" data-id="ckbnfbfe5000zh2j7ecojkmom" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -512,7 +570,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/27/类似股票数据表格效果/" data-id="ck30w6hnj000wkhz68hz0zopd" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2017/10/27/类似股票数据表格效果/" data-id="ckbnfbfdv000xh2j79n6li9vw" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -553,7 +611,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/12/OC之事件传递响应链/" data-id="ck30w6hmx000ekhz6xiocoiht" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2017/10/12/OC之事件传递响应链/" data-id="ckbnfbfdc000eh2j7nfzq3cyl" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -611,7 +669,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" data-id="ck30w6hn9000okhz6ecxmybmt" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" data-id="ckbnfbfdm000oh2j7pupk9w7y" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -665,7 +723,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="ck30w6hmy000fkhz6b4i4m42v" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="ckbnfbfdd000fh2j7tbc28gf9" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -735,66 +793,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之消息与转发/" data-id="ck30w6hn2000hkhz6lsx06dba" class="article-share-link">Partager</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-OC之GCD和NSOperation" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/09/28/OC之GCD和NSOperation/" class="article-date">
-  <time datetime="2017-09-28T05:44:57.000Z" itemprop="datePublished">2017-09-28</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/28/OC之GCD和NSOperation/">OC之GCD和NSOperation</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="区别和优势"><a href="#区别和优势" class="headerlink" title="区别和优势"></a>区别和优势</h2><p>控制并发数、取消、添加依赖关系等需要使用 NSOperation Queue。<br>可复用性高的任务建议使用 NSOperation 实现。</p>
-<p>对于简单的任务使用 GCD 即可</p>
-<h2 id="同步异步"><a href="#同步异步" class="headerlink" title="同步异步"></a>同步异步</h2><p>dispatch_sync<br>dispatch_async</p>
-<h2 id="串行并行"><a href="#串行并行" class="headerlink" title="串行并行"></a>串行并行</h2><p>串行表示一次只能执行一个任务，只有当前一个任务完成后才启动下一个任务，而并行指可以同时执行多个任务。<br>常见于GCD的串行和并发队列。</p>
-<h2 id="NSOperation-抽象类"><a href="#NSOperation-抽象类" class="headerlink" title="NSOperation(抽象类)"></a>NSOperation(抽象类)</h2><p>main<br>start<br>cancel<br>ready<br>asynchronous</p>
-<p>NSBlockOperation<br>NSInvocationOperation</p>
-<h3 id="自定义-并发的-NSOperation"><a href="#自定义-并发的-NSOperation" class="headerlink" title="自定义 并发的 NSOperation"></a>自定义 并发的 NSOperation</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">- (void)setFinished:(BOOL)finished &#123; // 手动触发KVO</span><br><span class="line">    [self willChangeValueForKey:@&quot;isFinished&quot;];</span><br><span class="line">    _finished = finished;</span><br><span class="line">    [self didChangeValueForKey:@&quot;isFinished&quot;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)setExecuting:(BOOL)executing &#123;</span><br><span class="line">    [self willChangeValueForKey:@&quot;isExecuting&quot;];</span><br><span class="line">    _executing = executing;</span><br><span class="line">    [self didChangeValueForKey:@&quot;isExecuting&quot;];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (BOOL)isConcurrent &#123;// 一直返回YES，表示并发的NSOperation</span><br><span class="line">    return YES;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="NSOperationQueue"><a href="#NSOperationQueue" class="headerlink" title="NSOperationQueue"></a>NSOperationQueue</h2><h2 id="GCD"><a href="#GCD" class="headerlink" title="GCD"></a>GCD</h2><ol>
-<li><p>同步异步函数<br>dispatch_sync<br>dispatch_async</p>
-</li>
-<li><p>延迟函数<br>dispatch_after</p>
-</li>
-<li><p>一次性函数<br>dispatch_once</p>
-</li>
-<li><p>信号量<br>dispatch_semaphore_t semaphore = dispatch_semaphore_create(10); //资源数是10, 为0没有资源<br>dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);      //semaphore–<br>dispatch_semaphore_signal(semaphore);                           //semaphore++</p>
-</li>
-<li><p>group<br>dispatch_group_t<br>dispatch_group_notify</p>
-</li>
-<li><p>循环和栅栏<br>dispatch_apply //同步函数，重复执行。会阻塞当前线程直到所有循环迭代执行完成<br>dispatch_barrier_async// 栅栏函数，用于同步。</p>
-</li>
-<li><p>GCD的timer</p>
-</li>
-</ol>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之GCD和NSOperation/" data-id="ck30w6hmw000dkhz6x92tfkps" class="article-share-link">Partager</a>
+      <a data-url="http://yoursite.com/2017/09/28/OC之消息与转发/" data-id="ckbnfbfdf000hh2j7m6m9tdqc" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -825,7 +824,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
     </div>
   </div>
 
@@ -836,6 +835,10 @@
     <h3 class="widget-title">Articles récents</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/06/20/常见iOSUI方案-md/">常见iOSUI方案.md</a>
+          </li>
         
           <li>
             <a href="/2019/11/16/记一次MethodSwizzle的bugfix/">记一次MethodSwizzle的bugfix</a>
@@ -853,10 +856,6 @@
             <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
           </li>
         
-          <li>
-            <a href="/2019/04/07/函数小计和数据结构/">函数小计和数据结构</a>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -869,7 +868,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 hust_destiny<br>
+      &copy; 2020 hust_destiny<br>
       Propulsé by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
