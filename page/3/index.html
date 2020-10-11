@@ -48,9 +48,9 @@
       </nav>
       <nav id="sub-nav">
         
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="Flux RSS"></a>
         
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+        <a id="nav-search-btn" class="nav-icon" title="Rechercher"></a>
       </nav>
       <div id="search-form-wrap">
         <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
@@ -60,6 +60,107 @@
 </header>
       <div class="outer">
         <section id="main">
+  
+    <article id="post-YYModel源码学习" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/28/YYModel源码学习/" class="article-date">
+  <time datetime="2018-04-28T02:15:28.000Z" itemprop="datePublished">2018-04-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/28/YYModel源码学习/">YYModel源码学习</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>项目里面居然还是手动解析服务端返回的json，简直不能忍受那些重复的代码。<br>现在市面OC上比较主流应该是MJExtension和YYModel了吧。（当然Swift应该是SwiftyJson，当前的工作栈主要是OC，就以YYModel入手了）</p>
+<p>这是一个NSObject的Category,这也是YYModel的核心，因为它是通过runtime实现反射来实现的。<br>先看这个入口函数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)yy_modelWithJSON:(id)json;</span><br><span class="line">+ (NSDictionary *)_yy_dictionaryWithJSON:(id)json</span><br><span class="line">+ (instancetype)yy_modelWithDictionary:(NSDictionary *)dictionary;</span><br></pre></td></tr></table></figure>
+<p>注意一下，这里传入的是一个id类型，参数名为json的对象。好吧，我就不卖关子了，json是有两种形态的，一个是json对象形态NSDictionary，另一种就是字符串形态NSString，除此以外这里也处理json字符串UTF8编码后的NSData。</p>
+<p>所以第二个方法的工作就是将上述的所有的形态，转换成一个NSDictionary。也就是下面这个api的作用了。</p>
+<p>然后就是根据NSDictionary生成Model了。</p>
+<ol>
+<li>根据惯例，首先是参数检查。</li>
+<li>获得当前的Class</li>
+<li>根据Class生成一个_YYModelMeta的对象，从名字看出他是这个类的元信息。</li>
+<li>检查是否有自定义的Class去从字典转换</li>
+<li>创建一个对象</li>
+<li>给这个新的对象赋值，并返回</li>
+</ol>
+<p>首先来看这个_YYModelMeta对象吧<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)metaWithClass:(Class)cls;</span><br><span class="line">- (instancetype)initWithClass:(Class)cls;</span><br></pre></td></tr></table></figure></p>
+<p>这里实用类方法，主要目的是增加一个缓存，提高效率。</p>
+<ol>
+<li>根据惯例，首先是参数检查。</li>
+<li>使用单例，生成cache, lock。这个锁是基于信号量的。</li>
+<li>加锁，从cache中寻找meta，解锁 （这一步提高性能）</li>
+<li>如果没有找到meta,或者meta需要更新</li>
+<li><p>生成meta,cache这个生成的meta，然后return</p>
+<p> 生成meta的方法如下</p>
+<ol>
+<li><p>首先获得YYClassInfo, 没有则return nil<br> 这里还涉及一个YYClassInfo的创建,这里有三个容器，ivarInfos, methodInfos, propertyInfos，前两个感觉没啥用啊</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)classInfoWithClass:(Class)cls;</span><br><span class="line">- (instancetype)initWithClass:(Class)cls;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建classCache, metaCache, 锁</li>
+<li>使用单例初始化</li>
+<li>加锁，读cache</li>
+<li>创建info, 设置cache<ol>
+<li>参数检查</li>
+<li>设置cls, superCls, 设置isMeta，不是meta获得metaCls, 获得类名</li>
+<li>update，methodInfos, propertyInfos, ivarInfos</li>
+<li>获得父类的ClassInfo</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>获取黑名单</li>
+<li>获取白名单</li>
+<li>获取容器中的类型，key比如得是属性名，value可以由Class或者是这个Class名字的字符串转成Class</li>
+<li><p>建立一个属性的allPropertyMetas字典，遍历继承链，遍历propertyInfos，过滤 没有属性名，有黑名单并在名单中，有白名单不在名单中，生成属性meta, 过滤 属性meta不存在或者没有名字，meta没有getter或者setter，已存在（所以子类覆盖父类）。<br> 根据propertyInfo,生成_YYModelPropertyMeta</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">+ (instancetype)metaWithClassInfo:(YYClassInfo *)classInfo propertyInfo:(YYClassPropertyInfo *)propertyInfo generic:(Class)generic</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>将结果存在_allPropertyMetas中可以为属性名，value 为propertyMeta</p>
+</li>
+<li>建立三个字典mapper，keyPathPropertyMetas，multiKeysPropertyMetas，主要处理keyPath的情况</li>
+<li>判断是否有自定义Mapper,如果存在自定义customMapper,遍历<ol>
+<li>从属性allPropertyMetas中找到PropertyMeta</li>
+<li>将其从中移除</li>
+<li>如果是字符串，判空，设置key, 判断是否是keypath,设置keyPath，设置_next, 设置mapper,key为keypath,value为propertyMeta</li>
+<li>如果是数组，遍历，参数检查，判断到底是key还是keyPath, 设置mappedTokey属性，设置_next, 设置mapper</li>
+</ol>
+</li>
+<li>设置mapper, keyPathPropertyMetas, multiKeysPropertyMetas</li>
+<li>设置一系列属性</li>
+</ol>
+</li>
+</ol>
+<p>上部分主要是对这个类进行各种解析，接下去的我们就是创建一个对象，然后给这个对象赋值。<br>这里首先创建一个context，这个其中包含了modelMeta, model(创建出来的对象)，dictionary（一般是服务端返回）</p>
+<p>这里根据_keyMappedCount和dic的数目对比，进行不同的处理，这里的遍历使用apply的方式。感觉是为了速度。</p>
+<p>分不同的情况分别调用了，下面的两个方法  这里都是使用inline函数<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">ModelSetWithDictionaryFunction</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *_key, <span class="keyword">const</span> <span class="keyword">void</span> *_value, <span class="keyword">void</span> *_context)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">ModelSetWithPropertyMetaArrayFunction</span><span class="params">(<span class="keyword">const</span> <span class="keyword">void</span> *_propertyMeta, <span class="keyword">void</span> *_context)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>最后的最后都会走到这个方法上来，这个方法针对不同的value的可能性通过setter方法给其赋值。<br>如果是容器，会使用_genericCls的class,递归调用<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">ModelSetValueForProperty</span><span class="params">(__unsafe_unretained id model,</span></span></span><br><span class="line"><span class="function"><span class="params">                                     __unsafe_unretained id value,</span></span></span><br><span class="line"><span class="function"><span class="params">                                     __unsafe_unretained _YYModelPropertyMeta *meta)</span></span></span><br></pre></td></tr></table></figure></p>
+<p>最后一步就是自定义处理<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)modelCustomTransformFromDictionary:(NSDictionary *)dic;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/04/28/YYModel源码学习/" data-id="ckg4jkczn000jpdj7er4klumn" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
   
     <article id="post-iOS中的锁" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
@@ -109,7 +210,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/04/26/iOS中的锁/" data-id="ckbnff0xx000nlwj72t5kx2y7" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/04/26/iOS中的锁/" data-id="ckg4jkczy000npdj7exhginm7" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -230,7 +331,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/04/17/SDWebImage源码学习/" data-id="ckbnff0xr000hlwj7v42vz4km" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/04/17/SDWebImage源码学习/" data-id="ckg4jkczk000hpdj79ifsz81k" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -310,7 +411,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/03/11/Autolayout学习笔记/" data-id="ckbnff0ww0001lwj7532war4s" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/03/11/Autolayout学习笔记/" data-id="ckg4jkcyf0001pdj787si2b8h" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -419,7 +520,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/" data-id="ckbnff0x20003lwj7xcs5chpr" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/02/28/CoreAnimation学习笔记/" data-id="ckg4jkcym0003pdj7rg04kn00" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -531,7 +632,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/02/27/AFNetworking学习笔记/" data-id="ckbnff0yi000zlwj7mfinzua2" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/02/27/AFNetworking学习笔记/" data-id="ckg4jkd0y0010pdj7nu1uvg6y" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -570,7 +671,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/27/类似股票数据表格效果/" data-id="ckbnff0y5000ulwj7a1xyuuv1" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/10/27/类似股票数据表格效果/" data-id="ckg4jkd0c000wpdj7n4n02qrn" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -611,7 +712,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/12/OC之事件传递响应链/" data-id="ckbnff0xl000dlwj770majyof" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/10/12/OC之事件传递响应链/" data-id="ckg4jkczh000epdj7qbh3tp7f" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -669,7 +770,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" data-id="ckbnff0xy000olwj7337elvg2" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/10/11/iOS之HTTP-HTTPS-TCP-UDP-DNS/" data-id="ckg4jkczz000opdj7ey293wp4" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -723,77 +824,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="ckbnff0xn000elwj7in3nhvd6" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-OC之消息与转发" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/09/28/OC之消息与转发/" class="article-date">
-  <time datetime="2017-09-28T07:22:38.000Z" itemprop="datePublished">2017-09-28</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/28/OC之消息与转发/">OC之消息与转发</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="方法调用"><a href="#方法调用" class="headerlink" title="方法调用"></a>方法调用</h2><p>当我刚学习的时候，我觉得方法和函数是一个东西。那时候too young too simple。<br>后来我学了一点，我以为属于类的就是方法。也对不太对。在OC中调用方法其实是发消息objc_msgSend。函数则是直接执行。</p>
-<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><p>详见objc-runtime-new.mm</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Method <span class="title">class_getInstanceMethod</span><span class="params">(Class cls, SEL sel)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!cls  ||  !sel) <span class="keyword">return</span> nil;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// This deliberately avoids +initialize because it historically did so.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// This implementation is a bit weird because it's the only place that </span></span><br><span class="line">    <span class="comment">// wants a Method instead of an IMP.</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">warning</span> fixme build and search caches</span></span><br><span class="line">        </span><br><span class="line">    <span class="comment">// Search method lists, try method resolver, etc.</span></span><br><span class="line">    lookUpImpOrNil(cls, sel, nil, </span><br><span class="line">                   NO<span class="comment">/*initialize*/</span>, NO<span class="comment">/*cache*/</span>, YES<span class="comment">/*resolver*/</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">warning</span> fixme build and search caches</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> _class_getMethod(cls, sel);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">IMP <span class="title">lookUpImpOrNil</span><span class="params">(Class cls, SEL sel, id inst, </span></span></span><br><span class="line"><span class="function"><span class="params">                   <span class="keyword">bool</span> initialize, <span class="keyword">bool</span> cache, <span class="keyword">bool</span> resolver)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    IMP imp = lookUpImpOrForward(cls, sel, inst, initialize, cache, resolver);</span><br><span class="line">    <span class="keyword">if</span> (imp == _objc_msgForward_impcache) <span class="keyword">return</span> nil;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">return</span> imp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">IMP <span class="title">lookUpImpOrForward</span><span class="params">(Class cls, SEL sel, id inst, </span></span></span><br><span class="line"><span class="function"><span class="params">                       <span class="keyword">bool</span> initialize, <span class="keyword">bool</span> cache, <span class="keyword">bool</span> resolver)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Class curClass;</span><br><span class="line">    IMP imp = nil;</span><br><span class="line">    Method meth;</span><br><span class="line">    <span class="keyword">bool</span> triedResolver = NO;</span><br><span class="line"></span><br><span class="line">    runtimeLock.assertUnlocked();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Optimistic cache lookup</span></span><br><span class="line">    <span class="keyword">if</span> (cache) &#123;</span><br><span class="line">        imp = cache_getImp(cls, sel);   <span class="comment">//0. 根据Class和SEL在cache中寻找IMP</span></span><br><span class="line">        <span class="keyword">if</span> (imp) <span class="keyword">return</span> imp;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!cls-&gt;isRealized()) &#123;           <span class="comment">//1. Class没有实现，实现这个Class</span></span><br><span class="line">        <span class="keyword">rwlock_writer_t</span> lock(runtimeLock);</span><br><span class="line">        realizeClass(cls);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (initialize  &amp;&amp;  !cls-&gt;isInitialized()) &#123;<span class="comment">//2. Class没有Initailize,也就是说在第一次收到消息的时候Initialize这个Class</span></span><br><span class="line">        _class_initialize (_class_getNonMetaClass(cls, inst));</span><br><span class="line">        <span class="comment">// If sel == initialize, _class_initialize will send +initialize and </span></span><br><span class="line">        <span class="comment">// then the messenger will send +initialize again after this </span></span><br><span class="line">        <span class="comment">// procedure finishes. Of course, if this is not being called </span></span><br><span class="line">        <span class="comment">// from the messenger then it won't happen. 2778172</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// The lock is held to make method-lookup + cache-fill atomic </span></span><br><span class="line">    <span class="comment">// with respect to method addition. Otherwise, a category could </span></span><br><span class="line">    <span class="comment">// be added but ignored indefinitely because the cache was re-filled </span></span><br><span class="line">    <span class="comment">// with the old value after the cache flush on behalf of the category.</span></span><br><span class="line"> retry:</span><br><span class="line">    runtimeLock.read();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Try this class's cache.</span></span><br><span class="line"></span><br><span class="line">    imp = cache_getImp(cls, sel);<span class="comment">//3. 在自身的类缓存中查找</span></span><br><span class="line">    <span class="keyword">if</span> (imp) <span class="keyword">goto</span> done;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Try this class's method lists.</span></span><br><span class="line"></span><br><span class="line">    meth = getMethodNoSuper_nolock(cls, sel);<span class="comment">//4. 在自身的类中查找</span></span><br><span class="line">    <span class="keyword">if</span> (meth) &#123;</span><br><span class="line">        log_and_fill_cache(cls, meth-&gt;imp, sel, inst, cls);<span class="comment">//5. 添加到缓存</span></span><br><span class="line">        imp = meth-&gt;imp;</span><br><span class="line">        <span class="keyword">goto</span> done;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Try superclass caches and method lists.</span></span><br><span class="line"></span><br><span class="line">    curClass = cls;</span><br><span class="line">    <span class="keyword">while</span> ((curClass = curClass-&gt;superclass)) &#123;</span><br><span class="line">        <span class="comment">// Superclass cache.</span></span><br><span class="line">        imp = cache_getImp(curClass, sel);<span class="comment">// 6. 父类缓存中查找</span></span><br><span class="line">        <span class="keyword">if</span> (imp) &#123;</span><br><span class="line">            <span class="keyword">if</span> (imp != (IMP)_objc_msgForward_impcache) &#123;</span><br><span class="line">                <span class="comment">// Found the method in a superclass. Cache it in this class.</span></span><br><span class="line">                log_and_fill_cache(cls, imp, sel, inst, curClass);</span><br><span class="line">                <span class="keyword">goto</span> done;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// Found a forward:: entry in a superclass.</span></span><br><span class="line">                <span class="comment">// Stop searching, but don't cache yet; call method </span></span><br><span class="line">                <span class="comment">// resolver for this class first.</span></span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Superclass method list.</span></span><br><span class="line">        meth = getMethodNoSuper_nolock(curClass, sel);<span class="comment">// 父类中查找</span></span><br><span class="line">        <span class="keyword">if</span> (meth) &#123;</span><br><span class="line">            log_and_fill_cache(cls, meth-&gt;imp, sel, inst, curClass);<span class="comment">// 添加到自身的缓存</span></span><br><span class="line">            imp = meth-&gt;imp;</span><br><span class="line">            <span class="keyword">goto</span> done;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// No implementation found. Try method resolver once.</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (resolver  &amp;&amp;  !triedResolver) &#123;</span><br><span class="line">        runtimeLock.unlockRead();</span><br><span class="line">        _class_resolveMethod(cls, sel, inst);<span class="comment">// 消息转发 内部判断不是元类调用resolveInstanceMethod, 是元类调用resolveClassMethod</span></span><br><span class="line">        <span class="comment">// Don't cache the result; we don't hold the lock so it may have </span></span><br><span class="line">        <span class="comment">// changed already. Re-do the search from scratch instead.</span></span><br><span class="line">        triedResolver = YES;</span><br><span class="line">        <span class="keyword">goto</span> retry;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// No implementation found, and method resolver didn't help. </span></span><br><span class="line">    <span class="comment">// Use forwarding.</span></span><br><span class="line"></span><br><span class="line">    imp = (IMP)_objc_msgForward_impcache;</span><br><span class="line">    cache_fill(cls, sel, imp, inst);</span><br><span class="line"></span><br><span class="line"> done:</span><br><span class="line">    runtimeLock.unlockRead();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> imp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="发消息的流程"><a href="#发消息的流程" class="headerlink" title="发消息的流程"></a>发消息的流程</h2><ol>
-<li>根据Class和SEL在缓存中寻找IMP, 找到直接return imp</li>
-<li>判断Class是否实现，是否initialize，根据Class methodlist中，寻找SEL的IMP，找到添加cache, return imp</li>
-<li>到父类中找, 先cache, 再methods, 添加cache（看源码好像是添加到当前类的cache, 如果再调用父类）</li>
-<li>都没找到执行_objc_msgForward</li>
-<li>_objc_msgForward_impcache</li>
-</ol>
-<h2 id="转发流程"><a href="#转发流程" class="headerlink" title="转发流程"></a>转发流程</h2><p>结合NSObject文档可以知道，_objc_msgForward消息转发做了如下几件事：</p>
-<ol>
-<li>调用resolveInstanceMethod:方法，允许用户在此时为该Class动态添加实现。如果有实现了，则调用并返回。如果仍没实现，继续下面的动作。</li>
-<li>调用forwardingTargetForSelector:方法，尝试找到一个能响应该消息的对象。如果获取到，则直接转发给它。如果返回了nil，继续下面的动作。</li>
-<li>调用methodSignatureForSelector:方法，尝试获得一个方法签名。如果获取不到，则直接调用doesNotRecognizeSelector抛出异常。</li>
-<li>调用forwardInvocation:方法，将地3步获取到的方法签名包装成Invocation传入，如何处理就在这里面了</li>
-</ol>
-<p>Tips ==&gt; TypeCoding<br>“v@:” // 依次为返回值，self, SEL, 参数列表。 v代表返回值为void；@代表参数对象类型，这种情况为消息转发的对象；：代表参数为SEL类型，这种情况为消息转发的SEL;</p>
-<h2 id="NSInvocation"><a href="#NSInvocation" class="headerlink" title="NSInvocation"></a>NSInvocation</h2><p>NSInvocation对于参数&gt;2个或者有返回值的处理的封装</p>
-<ol>
-<li>类方法创建, NSMethodSignature由方法属于的类创建。</li>
-</ol>
-<ul>
-<li>(NSInvocation <em>)invocationWithMethodSignature:(NSMethodSignature </em>)sig;</li>
-</ul>
-<ol>
-<li><p>指定obj执行这个方法，在这之前可以设置参数。<br>[invocation invokeWithTarget: obj];</p>
-<h2 id="应用场景"><a href="#应用场景" class="headerlink" title="应用场景"></a>应用场景</h2></li>
-<li><p>@dynamic 属性</p>
-</li>
-<li>多继承</li>
-</ol>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/09/28/OC之消息与转发/" data-id="ckbnff0xo000flwj7pe0pcevl" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2017/09/29/OC之属性关键字/" data-id="ckg4jkczi000fpdj7u46fyhzm" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -824,7 +855,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
     </div>
   </div>
 
@@ -832,9 +863,13 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
+    <h3 class="widget-title">Articles récents</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/10/11/音视频学习笔记/">音视频学习笔记</a>
+          </li>
         
           <li>
             <a href="/2020/06/20/常见iOSUI方案/">常见iOSUI方案</a>
@@ -852,10 +887,6 @@
             <a href="/2019/10/16/iOS证书和推送/">iOS证书和推送</a>
           </li>
         
-          <li>
-            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -869,7 +900,7 @@
   <div class="outer">
     <div id="footer-info" class="inner">
       &copy; 2020 hust_destiny<br>
-      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      Propulsé by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
 </footer>

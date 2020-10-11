@@ -48,9 +48,9 @@
       </nav>
       <nav id="sub-nav">
         
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="Flux RSS"></a>
         
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+        <a id="nav-search-btn" class="nav-icon" title="Rechercher"></a>
       </nav>
       <div id="search-form-wrap">
         <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
@@ -60,6 +60,128 @@
 </header>
       <div class="outer">
         <section id="main">
+  
+    <article id="post-音视频学习笔记" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/10/11/音视频学习笔记/" class="article-date">
+  <time datetime="2020-10-11T03:21:11.000Z" itemprop="datePublished">2020-10-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/10/11/音视频学习笔记/">音视频学习笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="音视频学习记录"><a href="#音视频学习记录" class="headerlink" title="音视频学习记录"></a>音视频学习记录</h1><p>嗯，资料是真的少，大部分都是没啥用的。官方文档是爸爸，就酱！</p>
+<h2 id="前置相关章节"><a href="#前置相关章节" class="headerlink" title="前置相关章节"></a>前置相关章节</h2><p><a href="https://developer.apple.com/documentation/avfoundation?language=objc" target="_blank" rel="noopener">官方文档</a></p>
+<p>Working with Media in AV Foundation <a href="https://developer.apple.com/videos/play/wwdc2011/415/" target="_blank" rel="noopener">WWDC11 Session 415</a><br>Real-Time Media Effects and Processing during Playback <a href="https://developer.apple.com/videos/play/wwdc2012/517/" target="_blank" rel="noopener">WWDC12 Session 517</a><br>Advanced Editing with AV Foundation <a href="https://developer.apple.com/videos/play/wwdc2013/612/" target="_blank" rel="noopener">WWDC13 Session 612</a><br>iOS 视频编辑核心架构 <a href="https://github.com/VideoFlint/Cabbage/wiki/%E4%B8%AD%E6%96%87%E8%AF%B4%E6%98%8E" target="_blank" rel="noopener">Cabbage</a><br><a href="https://github.com/SubCipher/AVMutableComposition/blob/master/VideoMerge.swift" target="_blank" rel="noopener">MergeVideo</a></p>
+<h2 id="Assets"><a href="#Assets" class="headerlink" title="Assets"></a>Assets</h2><h3 id="AVAsset"><a href="#AVAsset" class="headerlink" title="AVAsset"></a>AVAsset</h3><ol>
+<li>可以加载本地多媒体文件，也可以加载远程的链接，以及视频流。</li>
+<li>它是由一组轨道组成的。AVAssetTrack。</li>
+<li>AVAsynchronousKeyValueLoading协议。很多音视频对象初始化，不意味着他的所有数据都是ready的。</li>
+<li>他是个抽象类，AVURLAsset、AVComposition、AVMovie。</li>
+<li>metadata，元数据的读取。在export可以写入和修改。<a href="https://developer.apple.com/library/archive/samplecode/AVMovieExporter/Introduction/Intro.html#//apple_ref/doc/uid/DTS40011364" target="_blank" rel="noopener">demo</a></li>
+<li>基础信息metadata, 码率，帧率, 时长，等</li>
+</ol>
+<p><a href="https://zhuanlan.zhihu.com/p/34162672" target="_blank" rel="noopener">I帧B帧P帧</a><br>I frame的解码不依赖于任何其他的帧。而Pframe 的几码则依赖于前面的面的Ifarme或者Pframe.Bframe 的解码则依赖于其前的最近一个I frame 或者P frame 及其后的最近的一个P frame</p>
+<h2 id="AVComposition"><a href="#AVComposition" class="headerlink" title="AVComposition"></a>AVComposition</h2><ol>
+<li><p>构建 composition</p>
+<ol>
+<li>AVComposition<br> AVCompositionTrack<br>   AVCompositionTrackSegment</li>
+<li>AVVideoComposition<br> AVVideoCompositing<br> AVVideoCompositionInstruction<br>   AVVideoCompositionLayerInstruction<br> AVVideoCompositionCoreAnimationTool</li>
+<li><p>AVAudioMix<br> AVAudioMixInputParameters<br>   audioTimePitchAlgorithm<br>   audioTapProcessor</p>
+<p>AVComposition 是合成器。包含tracks数组，最基本的就是一条视频轨道，一条音频轨道<br>AVCompositionTrack 是轨道。trackID轨道id, timeRange, preferredTransform, naturalSize，包含segments数组。<br>AVCompositionTrackSegment 是轨道片段。timeMapping时间映射（变速可通过这个实现），sourceURL数据源文件url。sourceTrackID数据源文件的trackID。</p>
+<p>AVVideoComposition 视频合成器。frameDuration设置帧率，renderSize画布大小，自定处理类，操作指令，coreanimation。<br>AVVideoCompositing 自定义处理类。输入pixelbuffer格式，输出pixelbuffer格式，上下文，处理函数startVideoCompositionRequest。<br>AVVideoCompositionInstruction 合成指令。timeRange，backgroundColor，layerInstructions视图指令，enablePostProcessing开启后处理，trackIDs。<br>AVVideoCompositionLayerInstruction 视图指令。设置transform，透明度，裁剪。trackID。<br>AVVideoCompositionCoreAnimationTool 与CoreAnimation结合使用 superLayer videoLayer animationLayer</p>
+<p>AVAudioMix 音频混音器。<br>AVAudioMixInputParameters 单个音频的处理参数。设置音量大小，渐变等。<br>AVAudioTimePitchAlgorithm 变声算法。<br>MTAudioProcessingTapRef 自定义处理类。</p>
+</li>
+</ol>
+</li>
+</ol>
+<ol>
+<li>消费 compostion<ol>
+<li>AVPlayerItem –&gt; AVPlayer</li>
+<li>AVAssetExportSession –&gt; mov</li>
+<li>AVAssetReader –&gt; VideoCompostion Output –&gt; AVAssetWriter –&gt; MOV</li>
+<li>AVAssetImageGenerator</li>
+</ol>
+</li>
+</ol>
+<h2 id="tips-amp-踩坑"><a href="#tips-amp-踩坑" class="headerlink" title="tips&amp;踩坑"></a>tips&amp;踩坑</h2><pre><code>播放器循环播放，监听AVPlayerItemDidPlayToEndTimeNotification[iOS13.0可能是系统bug](https://developer.apple.com/forums/thread/120094)
+第一帧展示，KVO，AVPlayerLayer的readyForDisplay。
+</code></pre><h2 id="图像处理基础"><a href="#图像处理基础" class="headerlink" title="图像处理基础"></a>图像处理基础</h2><pre><code>1. [YUV420](https://markrepo.github.io/avcodec/2018/06/28/YUV/)
+2. [RGBA]()
+</code></pre><h2 id="OpenGL基础"><a href="#OpenGL基础" class="headerlink" title="OpenGL基础"></a>OpenGL基础</h2><pre><code>1. 基础数据
+glCreateProgram
+GL_FRAMEBUFFER
+GL_TEXTURE_2D
+GL_RENDERBUFFER
+
+2. shader
+  vertext shader // 顶点着色器
+  fragment shader// 片元着色器
+
+3. uniforms
+4. attributtes
+
+5. 坐标系统
+缩放，平移，旋转。
+
+6. mvp矩阵
+贴纸
+</code></pre><h3 id="基础滤镜，模糊，fade转场"><a href="#基础滤镜，模糊，fade转场" class="headerlink" title="基础滤镜，模糊，fade转场.."></a>基础滤镜，模糊，fade转场..</h3><p><a href="https://gl-transitions.surge.sh/gallery?page=1" target="_blank" rel="noopener">转场</a><br>时间曲线: Linear,CubicBezier</p>
+<h3 id="美白，磨皮"><a href="#美白，磨皮" class="headerlink" title="美白，磨皮"></a>美白，磨皮</h3><h3 id="瘦脸，大眼"><a href="#瘦脸，大眼" class="headerlink" title="瘦脸，大眼"></a>瘦脸，大眼</h3><h2 id="CVPixelBuffer、UIImage、Texture三者之间的转换"><a href="#CVPixelBuffer、UIImage、Texture三者之间的转换" class="headerlink" title="CVPixelBuffer、UIImage、Texture三者之间的转换"></a>CVPixelBuffer、UIImage、Texture三者之间的转换</h2><ol>
+<li>CMSampleBuffer to a UIImage</li>
+</ol>
+<p>// Create a UIImage from sample buffer data</p>
+<ul>
+<li><p>(UIImage *) imageFromSampleBuffer:(CMSampleBufferRef) sampleBuffer<br>{<br>  // Get a CMSampleBuffer’s Core Video image buffer for the media data<br>  CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);<br>  // Lock the base address of the pixel buffer<br>  CVPixelBufferLockBaseAddress(imageBuffer, 0);</p>
+<p>  // Get the number of bytes per row for the pixel buffer<br>  void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);</p>
+<p>  // Get the number of bytes per row for the pixel buffer<br>  size_t bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer);<br>  // Get the pixel buffer width and height<br>  size_t width = CVPixelBufferGetWidth(imageBuffer);<br>  size_t height = CVPixelBufferGetHeight(imageBuffer);</p>
+<p>  // Create a device-dependent RGB color space<br>  CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();</p>
+<p>  // Create a bitmap graphics context with the sample buffer data<br>  CGContextRef context = CGBitmapContextCreate(baseAddress, width, height, 8,</p>
+<pre><code>bytesPerRow, colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst);
+</code></pre><p>  // Create a Quartz image from the pixel data in the bitmap graphics context<br>  CGImageRef quartzImage = CGBitmapContextCreateImage(context);<br>  // Unlock the pixel buffer<br>  CVPixelBufferUnlockBaseAddress(imageBuffer,0);</p>
+<p>  // Free up the context and color space<br>  CGContextRelease(context);<br>  CGColorSpaceRelease(colorSpace);</p>
+<p>  // Create an image object from the Quartz image<br>  UIImage *image = [UIImage imageWithCGImage:quartzImage];</p>
+<p>  // Release the Quartz image<br>  CGImageRelease(quartzImage);</p>
+<p>  return (image);<br>}</p>
+</li>
+</ul>
+<ol>
+<li>Create CVPixelBuffer from CVPixelBufferPool <a href="https://developer.apple.com/library/archive/samplecode/VideoSnake/Introduction/Intro.html#//apple_ref/doc/uid/DTS40012327" target="_blank" rel="noopener">VideoSnake</a><br>在AVVideoCompositionRenderContext中，如果使用自己的pixelBuffer的话，注意attributes。<br>pixelBufferAttributes =<br>{<br> BytesPerRowAlignment = 64;<br> CacheMode =     (<pre><code>768,
+0,
+1280,
+512
+</code></pre> );<br> Height = 1280;<br> IOSurfaceCoreAnimationCompatibility = 1;<br> IOSurfaceProperties =     {<pre><code>IOSurfacePurgeWhenNotInUse = 1;
+</code></pre> };<br> PixelFormatType =     (<pre><code>875704438
+</code></pre> );<br> PlaneAlignment = 64;<br> Width = 720;<br>}</li>
+</ol>
+<p>CFDictionaryRef sourcePixelBufferOptions = CFBridgingRetain(@{<br>    (id)kCVPixelBufferBytesPerRowAlignmentKey: @64,<br>    @”CacheMode”: @[@768, @0, @(1280), @(512)],<br>    (id)kCVPixelBufferHeightKey: @(1280),<br>    (id)kCVPixelBufferIOSurfaceCoreAnimationCompatibilityKey:@1,<br>    (id)kCVPixelBufferIOSurfacePropertiesKey: @{<br>            @”IOSurfacePurgeWhenNotInUse”: @1,<br>    },<br>    (id)kCVPixelBufferPixelFormatTypeKey: @[@(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange)],<br>    (id)kCVPixelBufferPlaneAlignmentKey: @(64),<br>    (id)kCVPixelBufferWidthKey:@(720)<br>});</p>
+<p>UIGraphicsImageRenderer<br>CGImageSourceCreateThumbnailAtIndex// 下采样图片</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2020/10/11/音视频学习笔记/" data-id="ckg4jkd0g000zpdj7yhx16wie" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
   
     <article id="post-常见iOSUI方案" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
@@ -92,7 +214,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2020/06/20/常见iOSUI方案/" data-id="ckbnff0y8000ylwj7yo95rq81" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2020/06/20/常见iOSUI方案/" data-id="ckg4jkd0a000vpdj71g9xxp6p" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -143,7 +265,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/11/16/记一次MethodSwizzle的bugfix/" data-id="ckbnff0y7000wlwj7z5wclrz3" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/11/16/记一次MethodSwizzle的bugfix/" data-id="ckg4jkd0d000xpdj7114mr64a" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -205,7 +327,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/" data-id="ckbnff0xg000alwj73dhp0t41" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/10/27/MacBook-Pro-Retina-13-inch-Early-2015-更换ssd/" data-id="ckg4jkcz6000apdj7brw2ag5n" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -255,7 +377,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/10/16/iOS证书和推送/" data-id="ckbnff0xz000plwj7fbwprgi4" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/10/16/iOS证书和推送/" data-id="ckg4jkd01000ppdj7qiamnba4" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -303,7 +425,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/06/06/CocoaPods/" data-id="ckbnff0wz0002lwj7w1nl86gv" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/06/06/CocoaPods/" data-id="ckg4jkcyk0002pdj7v3yaw0c7" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -351,7 +473,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/04/07/函数小计和数据结构/" data-id="ckbnff0y6000vlwj7mk097t6v" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/04/07/函数小计和数据结构/" data-id="ckg4jkd08000updj73dt1zlh9" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -412,7 +534,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/03/07/git-handbook/" data-id="ckbnff0xv000llwj7cfbplh0m" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/03/07/git-handbook/" data-id="ckg4jkczs000lpdj7dqkr6q4z" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -452,7 +574,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/12/29/闲聊/" data-id="ckbnff0y7000xlwj7wfiny334" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/12/29/闲聊/" data-id="ckg4jkd0f000ypdj7leq538zo" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -531,46 +653,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/10/25/iOS逆向开发学习笔记（2）/" data-id="ckbnff0y1000rlwj7mk6ur941" class="article-share-link">Share</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-中秋以后" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/09/26/中秋以后/" class="article-date">
-  <time datetime="2018-09-26T14:47:13.000Z" itemprop="datePublished">2018-09-26</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/09/26/中秋以后/">中秋以后</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>这个月有点累，好多事情交错在一起。</p>
-<p>工作上刚进入一个新的领域，且进展不是很顺利，就不过多的吐槽了。码农真的是一个焦虑的职业，每天就是不断的学习，感觉总有学不完的新知识。或许我还没有找到行业的门道吧，我又打算重新理一下基础，只有基础越扎实才能站的更高。</p>
-<p>加油！</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/09/26/中秋以后/" data-id="ckbnff0y3000tlwj7jq7mrauy" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/10/25/iOS逆向开发学习笔记（2）/" data-id="ckg4jkd03000rpdj7uf89yda0" class="article-share-link">Partager</a>
       
       
     </footer>
@@ -601,7 +684,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li></ul>
     </div>
   </div>
 
@@ -609,9 +692,13 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
+    <h3 class="widget-title">Articles récents</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/10/11/音视频学习笔记/">音视频学习笔记</a>
+          </li>
         
           <li>
             <a href="/2020/06/20/常见iOSUI方案/">常见iOSUI方案</a>
@@ -629,10 +716,6 @@
             <a href="/2019/10/16/iOS证书和推送/">iOS证书和推送</a>
           </li>
         
-          <li>
-            <a href="/2019/06/06/CocoaPods/">CocoaPods</a>
-          </li>
-        
       </ul>
     </div>
   </div>
@@ -646,7 +729,7 @@
   <div class="outer">
     <div id="footer-info" class="inner">
       &copy; 2020 hust_destiny<br>
-      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      Propulsé by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
 </footer>
